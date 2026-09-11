@@ -1,0 +1,306 @@
+# =============================================================================
+#  OBJECTIVE QUEST — DATAQUEST 5.0
+#  Prediksi Life Satisfaction dari Survei Kesehatan Individu
+#
+#  Tim          : Warkab
+#  Metrik       : Quadratic Weighted Kappa (QWK)
+#  Berkas ini   : dependensi + dokumentasi teknis lengkap
+# =============================================================================
+#
+#  Pasang seluruh dependensi dengan:
+#
+#      pip install -r requirements.txt
+#
+#  Baris berawalan '#' diabaikan pip, sehingga dokumentasi di bawah aman
+#  disertakan dalam berkas yang sama.
+#
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1. DEPENDENSI
+# -----------------------------------------------------------------------------
+# Versi di bawah adalah versi yang benar-benar dipakai saat notebook dijalankan.
+# Batas bawah dipasang longgar agar tetap jalan pada lingkungan yang sedikit
+# berbeda; batas atas dipasang pada rilis mayor berikutnya untuk menghindari
+# perubahan API yang memutus kompatibilitas.
+
+numpy>=1.26,<3.0            # diuji pada 2.4.4
+pandas>=2.0,<3.0            # diuji pada 2.3.3
+scipy>=1.11,<2.0            # diuji pada 1.17.1
+scikit-learn>=1.3,<2.0      # diuji pada 1.6.1
+lightgbm>=4.0,<5.0          # diuji pada 4.7.0
+xgboost>=2.0,<4.0           # diuji pada 3.2.0
+catboost>=1.2,<2.0          # diuji pada 1.2.10
+matplotlib>=3.7,<4.0        # diuji pada 3.10.9
+joblib>=1.3,<2.0            # diuji pada 1.5.3
+
+# Diperlukan hanya untuk menjalankan / mengonversi notebook
+jupyter>=1.0
+nbformat>=5.9               # diuji pada 5.10.4
+nbconvert>=7.0
+ipykernel>=6.0
+
+# Catatan: pyarrow tidak wajib. Notebook membaca CSV secara langsung.
+
+
+# =============================================================================
+# 2. SPESIFIKASI LINGKUNGAN PENGUJIAN
+# =============================================================================
+#
+#   Python        : 3.11.9 (CPython 64-bit)
+#   Sistem operasi: Windows 11 (build 10.0.26200)
+#   Prosesor      : Intel64 Family 6 Model 165 (12 core logis)
+#   RAM           : 16 GB
+#   GPU           : tidak digunakan — seluruh pipeline berjalan di CPU
+#
+#   Waktu eksekusi notebook end-to-end : sekitar 100–120 menit
+#   Puncak pemakaian RAM               : sekitar 4–5 GB
+#   Ruang disk yang dibutuhkan         : sekitar 400 MB (termasuk berkas model)
+#
+#   Notebook tidak memerlukan koneksi internet. Seluruh data yang dipakai
+#   berasal dari berkas resmi panitia.
+#
+#
+# =============================================================================
+# 3. BERKAS YANG DIKUMPULKAN
+# =============================================================================
+#
+#   DataQuest5_Warkab.ipynb   Notebook utama, end-to-end, sudah dijalankan.
+#                             Berisi EDA, preprocessing, ablasi, pemodelan,
+#                             evaluasi, analisis plafon, dan pembuatan submission.
+#
+#   model_warkab.joblib       Artefak model terlatih (sekitar 84 MB). Berisi
+#                             model dasar, praproses, ambang batas, metadata
+#                             reproduksibilitas, dan versi seluruh pustaka.
+#
+#   submission.csv            Prediksi akhir. 23.666 baris, kolom `id` dan
+#                             `life_satisfaction`.
+#
+#   requirements.txt          Berkas ini.
+#
+#
+# =============================================================================
+# 4. CARA MENJALANKAN
+# =============================================================================
+#
+#   a. Menjalankan ulang notebook dari awal
+#   ---------------------------------------
+#   Letakkan train_final.csv, test_final.csv, dan data_dictionary.csv pada satu
+#   folder, lalu sesuaikan daftar CANDIDATES pada Bagian 1.1 notebook bila lokasi
+#   berbeda. Notebook mencari otomatis di beberapa lokasi umum.
+#
+#       jupyter nbconvert --to notebook --execute \
+#           --ExecutePreprocessor.timeout=21600 \
+#           --output hasil.ipynb DataQuest5_Warkab.ipynb
+#
+#   Notebook akan menuliskan submission.csv dan model_warkab.joblib ke
+#   subfolder `final/` di dalam folder dataset.
+#
+#
+#   b. Memuat model tanpa melatih ulang
+#   -----------------------------------
+#   Bundle memuat model dari berbagai keluarga yang antarmukanya berbeda:
+#   'ord' berupa daftar tiga classifier biner P(y>k), 'reg' berupa regressor
+#   pada skala ordinal, sisanya classifier empat kelas. Cuplikan di bawah sudah
+#   diuji dan menangani ketiganya.
+#
+#       import joblib, pandas as pd, numpy as np
+#
+#       bundle = joblib.load('model_warkab.joblib')
+#       test   = pd.read_csv('test_final.csv', low_memory=False)
+#       X      = test[bundle['features']].to_numpy(dtype=np.float32)
+#
+#       def reg_ke_proba(v):
+#           v = np.clip(v, 1, 4)
+#           o = np.zeros((len(v), 4))
+#           for i in range(4):
+#               o[:, i] = np.maximum(0.0, 1.0 - np.abs(v - (i + 1)))
+#           s = o.sum(axis=1, keepdims=True); s[s == 0] = 1.0
+#           return o / s
+#
+#       def kumulatif_ke_proba(P):
+#           P = np.clip(np.sort(P, axis=1)[:, ::-1], 1e-6, 1 - 1e-6)
+#           o = np.column_stack([1 - P[:, 0], P[:, 0] - P[:, 1],
+#                                P[:, 1] - P[:, 2], P[:, 2]])
+#           o = np.clip(o, 1e-6, None)
+#           return o / o.sum(axis=1, keepdims=True)
+#
+#       def proba_model(nama, m, X):
+#           if nama == 'ord':
+#               P = np.column_stack([mm.predict_proba(X)[:, 1] for mm in m])
+#               return kumulatif_ke_proba(P)
+#           if nama == 'reg':
+#               return reg_ke_proba(m.predict(X))
+#           return m.predict_proba(X)
+#
+#       # Konfigurasi final: rata-rata lima model berbasis pohon (MLP dikeluarkan)
+#       pohon = [n for n in bundle['base_models'] if n != 'mlp']
+#       proba = sum(proba_model(n, bundle['base_models'][n], X)
+#                   for n in pohon) / len(pohon)
+#
+#       # Nilai harapan ordinal, lalu potong dengan ambang batas tersimpan
+#       E  = (proba * np.array([1, 2, 3, 4])).sum(axis=1)
+#       t  = bundle['thresholds']
+#       yp = 1 + (E > t[0]) + (E > t[1]) + (E > t[2])
+#
+#   PENTING. Bundle hanya menyimpan model dari fold pertama sebagai artefak,
+#   sedangkan submission.csv dihasilkan dari rata-rata kelima fold. Cuplikan di
+#   atas karena itu menghasilkan prediksi yang mirip tetapi tidak identik —
+#   pada pengujian kami kecocokannya sekitar 95%. Untuk memperoleh berkas yang
+#   persis sama, jalankan ulang notebook secara penuh.
+#
+#
+#   c. Isi bundle model
+#   -------------------
+#       seed                 : 42
+#       features             : daftar 176 nama kolom fitur, sesuai urutan
+#       n_splits             : 5
+#       base_models          : model terlatih per keluarga algoritma
+#       meta_name            : cara penggabungan yang dipakai
+#       thresholds           : tiga ambang batas ordinal final
+#       threshold_strategy   : strategi estimasi ambang yang dipakai
+#       mlp_imputer          : SimpleImputer untuk jalur MLP
+#       mlp_quantile         : QuantileTransformer untuk jalur MLP
+#       oof_qwk, oof_accuracy: kinerja out-of-fold
+#       learning_curve       : titik-titik kurva belajar beserta hasil fitnya
+#       library_versions     : versi seluruh pustaka saat pelatihan
+#
+#
+# =============================================================================
+# 5. RINGKASAN METODOLOGI
+# =============================================================================
+#
+#   Target bersifat ORDINAL (1 Sangat puas ... 4 Sangat tidak puas) dan metrik
+#   QWK menghukum kesalahan secara kuadratik. Karena itu target tidak
+#   diperlakukan sebagai empat kelas terpisah.
+#
+#   Alur akhir:
+#
+#     1. Enam model dasar dilatih dengan validasi silang 5-fold yang identik:
+#        LightGBM, CatBoost, XGBoost (klasifikasi), regresi Huber,
+#        dekomposisi biner kumulatif, dan MLP.
+#
+#     2. Probabilitas dari lima model berbasis pohon dirata-ratakan secara
+#        sederhana. MLP dikeluarkan karena QWK tunggalnya jauh di bawah yang
+#        lain sehingga mengencerkan rata-rata. Keputusan ini ditetapkan
+#        di muka, bukan dengan mengambil skor validasi tertinggi.
+#
+#     3. Probabilitas diubah menjadi nilai harapan E[y] = sum(p_k * k).
+#
+#     4. E[y] dipotong dengan tiga ambang batas. Ambang diestimasi dengan
+#        merata-ratakan hasil optimasi pada puluhan resampel bootstrap dari
+#        prediksi out-of-fold — teknik reduksi variansi agar ambang berada di
+#        pusat dataran tinggi permukaan QWK, bukan pada puncak derau tunggal.
+#
+#   Seluruh keputusan diambil dari data latih. Data uji tidak pernah dipakai
+#   untuk memilih model, bobot, maupun ambang batas.
+#
+#   Keputusan paling berdampak adalah langkah 3–4. Mengganti argmax dengan
+#   nilai harapan berambang menaikkan QWK jauh lebih besar daripada seluruh
+#   pekerjaan pemodelan lainnya digabung — rinciannya pada Bagian 9 dan 10.4
+#   notebook.
+#
+#
+# =============================================================================
+# 6. CATATAN REPRODUKSIBILITAS
+# =============================================================================
+#
+#   Seluruh sumber keacakan yang dapat dikendalikan telah dikunci: SEED = 42
+#   untuk pembagian fold, FOLD_SEEDS untuk inisialisasi tiap model dasar, dan
+#   seed tetap pada seluruh prosedur resampling.
+#
+#   Satu hal perlu disampaikan terbuka. LightGBM, XGBoost, dan CatBoost yang
+#   berjalan multi-thread TIDAK menjamin hasil bit-identik antar eksekusi,
+#   karena urutan reduksi paralel saat pembentukan histogram bergantung pada
+#   penjadwalan sistem operasi. Seed mengunci pengambilan sampel dan
+#   inisialisasi, bukan urutan penjumlahan floating point.
+#
+#   Dampaknya terukur kecil: menjalankan ulang pipeline yang sama menghasilkan
+#   selisih QWK sekitar 0,001 — jauh di bawah derau sampling leaderboard publik
+#   (simpangan baku sekitar 0,009 pada 30% data uji). Struktur kesimpulan tidak
+#   berubah.
+#
+#   Bagi yang membutuhkan hasil bit-identik, tambahkan deterministic=True dan
+#   force_row_wise=True pada LightGBM serta setel n_jobs=1 pada seluruh model.
+#   Waktu eksekusi akan meningkat beberapa kali lipat.
+#
+#
+# =============================================================================
+# 7. DISCLAIMER — KELENGKAPAN KELUARAN NOTEBOOK
+# =============================================================================
+#
+#   BERKAS YANG DIKUMPULKAN SEBELUM BATAS WAKTU
+#   -------------------------------------------
+#   Pada DataQuest5_Warkab.ipynb yang dikumpulkan sebelum pukul 12.00, keluaran
+#   sel TIDAK LENGKAP:
+#
+#       - Bagian 1 sampai 6 : keluaran tersedia (27 dari 68 sel kode),
+#                             termasuk 5 grafik yang tersemat
+#       - Bagian 7 dan seterusnya : sel belum memiliki keluaran
+#
+#   Penyebabnya waktu, bukan kesalahan kode. Eksekusi end-to-end notebook ini
+#   memerlukan sekitar 100-120 menit, dan proses tersebut belum selesai ketika
+#   batas waktu pengumpulan tiba. Seluruh sel dapat dijalankan tanpa error; hal
+#   ini sudah diverifikasi pada eksekusi penuh sebelumnya.
+#
+#   Terpisah dari itu, terdapat satu masalah teknis pada versi awal yang telah
+#   diperbaiki: sel impor semula menetapkan backend matplotlib ke 'Agg'
+#   (matplotlib.use('Agg')). Pada kernel Jupyter, backend tersebut membuat
+#   plt.show() tidak menyematkan gambar ke dalam keluaran sel — kode grafik
+#   berjalan tanpa error, tetapi hasil visualnya tidak terekam. Perbaikannya
+#   adalah mengganti satu baris:
+#
+#       matplotlib.use('Agg')      ->      %matplotlib inline
+#
+#   Notebook yang dikumpulkan SUDAH memuat perbaikan tersebut.
+#
+#
+#   BERKAS PELENGKAP YANG DIUNGGAH SETELAH BATAS WAKTU
+#   --------------------------------------------------
+#   Versi yang dijalankan penuh diunggah ke Google Drive dengan nama:
+#
+#       DataQuest5_Warkab With Graph.ipynb
+#
+#   Berkas tersebut memuat keluaran untuk seluruh 68 sel kode beserta 15 grafik.
+#   Kode, struktur, dan metodologinya identik dengan versi yang dikumpulkan —
+#   satu-satunya perbedaan adalah kelengkapan keluaran.
+#
+#   Berkas pelengkap merupakan hasil eksekusi ulang notebook yang sama. Pada
+#   eksekusi tersebut, submission yang dihasilkan TERBUKTI IDENTIK dengan berkas
+#   submission.csv yang dikumpulkan — seluruh 23.666 baris sama persis. Dengan
+#   demikian notebook ini terverifikasi mereproduksi berkas submission yang
+#   diajukan ke leaderboard.
+#
+#   Catatan: sebagaimana dijelaskan pada Bagian 6, pustaka boosting multi-thread
+#   pada prinsipnya tidak menjamin hasil bit-identik antar eksekusi. Pada kasus
+#   ini hasilnya kebetulan identik; pada eksekusi lain selisih hingga sekitar
+#   0,001 QWK masih mungkin terjadi dan tidak menandakan perbedaan metode.
+#
+#   CATATAN WAKTU. Berkas pelengkap tersebut diunggah DI LUAR jam pengumpulan
+#   resmi. Kami menyertakannya semata-mata untuk kelengkapan dan keterbacaan,
+#   dan kami sepenuhnya memahami serta menerima apabila panitia memutuskan untuk
+#   TIDAK memperhitungkannya dalam penilaian, dan hanya menilai berkas yang
+#   masuk sebelum batas waktu.
+#
+#
+# =============================================================================
+# 8. KETERBATASAN YANG DIKETAHUI
+# =============================================================================
+#
+#   - Batas informasi. Kepuasan hidup dipengaruhi kepribadian, hubungan sosial,
+#     dan rasa bermakna yang tidak terekam dalam survei kesehatan. Analisis
+#     kurva belajar pada Bagian 11 menunjukkan kinerja telah mencapai plafon
+#     informasi dataset, bukan plafon algoritma.
+#
+#   - Kelas minoritas kecil. Kelas 4 hanya memiliki 893 sampel latih, sehingga
+#     ambang batas ketiga adalah parameter yang paling tidak stabil.
+#
+#   - Model ini ditujukan untuk penapisan tingkat populasi, bukan untuk
+#     keputusan mengenai individu. Distribusi nilai harapan untuk kelas 1 dan 2
+#     bertumpang tindih lebar.
+#
+#   - Generalisasi lintas populasi, instrumen survei, atau periode waktu lain
+#     belum diuji dan memerlukan validasi tersendiri.
+#
+# =============================================================================

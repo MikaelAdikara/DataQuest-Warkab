@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LifeScope — Skrining Kepuasan Hidup Tingkat Populasi | Tim Warkab</title>
+<meta name="description" content="Prototipe skrining kepuasan hidup berbasis skala ordinal. Tim Warkab, Objective Quest DataQuest 5.0.">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <div>
+        <div class="brand-name">LifeScope</div>
+        <div class="brand-sub">Skrining kepuasan hidup tingkat populasi &middot; Tim Warkab</div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab is-on" data-panel="p-individu" role="tab">Skrining individu</button>
+      <button class="tab" data-panel="p-kohort" role="tab">Analisis kohort</button>
+      <button class="tab" data-panel="p-metode" role="tab">Model card</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap lede">
+  <p>Model ini tidak menebak satu dari empat kelas. Ia menempatkan responden pada <strong>skala kepuasan yang kontinu</strong>,
+  lalu memotongnya dengan tiga ambang batas. Prototipe ini memperlihatkan aturan keputusan itu bekerja secara langsung —
+  seluruhnya di dalam peramban, tanpa server.</p>
+</div>
+
+<!-- ============================ INDIVIDU ============================ -->
+<main id="p-individu" class="wrap panel is-on">
+  <div class="grid-2">
+
+    <section class="col-form">
+      <h2 class="h-sec">Masukan responden</h2>
+      <p class="note">Tujuh belas variabel yang dapat ditanyakan langsung dalam wawancara singkat. Nilai awal adalah median populasi latih.</p>
+      <div id="form"></div>
+      <div class="row-btn">
+        <button id="btn-median" class="btn btn-ghost">Setel ke median populasi</button>
+        <button id="btn-acak" class="btn btn-ghost">Ambil responden acak</button>
+      </div>
+    </section>
+
+    <section class="col-out">
+      <div class="card card-hero">
+        <div class="hero-head">
+          <span class="lbl">Posisi pada skala kepuasan</span>
+          <span id="ey-val" class="ey">—</span>
+        </div>
+        <svg id="scale" viewBox="0 0 640 120" class="scale" role="img" aria-label="Skala kepuasan dengan tiga ambang batas"></svg>
+        <div id="verdict" class="verdict"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="h-card">Distribusi probabilitas</h3>
+        <div id="probs" class="probs"></div>
+        <p class="note tight">Nilai harapan E[y] = &Sigma; p<sub>k</sub>&middot;k adalah rata-rata berbobot dari keempat batang di atas —
+        bukan batang tertinggi. Di bawah penalti kuadratik, rata-rata mengalahkan modus.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="h-card">Faktor pendorong untuk responden ini</h3>
+        <p class="note tight">Seberapa jauh E[y] bergerak bila variabel ini dikembalikan ke median populasi, variabel lain tetap.
+        Nilai positif berarti variabel tersebut mendorong responden ke arah <em>kurang puas</em>.</p>
+        <div id="drivers" class="drivers"></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ============================ KOHORT ============================ -->
+<main id="p-kohort" class="wrap panel">
+  <div class="bar-actions">
+    <button id="btn-kohort" class="btn">Muat kohort contoh (800 responden)</button>
+    <label class="btn btn-ghost file">Unggah CSV sendiri<input id="file" type="file" accept=".csv"></label>
+    <span id="kohort-status" class="note"></span>
+  </div>
+
+  <div id="kohort-body" class="hidden">
+    <div class="stats" id="kohort-stats"></div>
+
+    <div class="card">
+      <h3 class="h-card">Sebaran E[y] dalam kohort</h3>
+      <svg id="hist" viewBox="0 0 900 260" class="hist" role="img" aria-label="Histogram nilai harapan kohort"></svg>
+      <p class="note tight">Tiga garis vertikal adalah ambang batas produksi. Perhatikan bahwa massa terbesar menumpuk di sekitar
+      t<sub>1</sub> — di situlah ambiguitas &ldquo;Sangat puas&rdquo; versus &ldquo;Puas&rdquo; berada, dan di situlah 35,8% dari seluruh
+      penalti QWK model penuh terjadi.</p>
+    </div>
+
+    <div class="card card-lab">
+      <h3 class="h-card">Laboratorium ambang penapisan</h3>
+      <p class="note tight">Ambang t<sub>3</sub> yang optimal untuk QWK belum tentu ambang yang tepat untuk penapisan kesehatan.
+      Optimasi QWK menyeimbangkan seluruh kelas; penapisan biasanya lebih menoleransi positif palsu daripada melewatkan kasus.
+      Geser untuk melihat konsekuensinya.</p>
+      <div class="slider-row">
+        <input id="t3" type="range" min="1.80" max="3.00" step="0.01">
+        <div class="slider-read">
+          <span class="lbl">t<sub>3</sub> penapisan</span>
+          <span id="t3-val" class="t3v">—</span>
+          <span id="t3-delta" class="note"></span>
+        </div>
+      </div>
+      <div class="stats stats-3" id="lab-stats"></div>
+      <button id="btn-reset-t3" class="btn btn-ghost small">Kembalikan ke ambang optimal QWK</button>
+    </div>
+
+    <div class="card">
+      <h3 class="h-card">Dua puluh responden dengan E[y] tertinggi</h3>
+      <p class="note tight">Urutan inilah keluaran yang benar-benar berguna bagi perencana program: bukan label, melainkan daftar prioritas.</p>
+      <div class="tbl-wrap"><table id="top-tbl" class="tbl"></table></div>
+    </div>
+  </div>
+</main>
+
+<!-- ============================ METODOLOGI ============================ -->
+<main id="p-metode" class="wrap panel">
+  <div class="grid-2">
+    <section>
+      <h2 class="h-sec">Apa yang berjalan di halaman ini</h2>
+      <p>Prototipe ini menjalankan <strong>model ringkas</strong> berisi <span id="m-trees">—</span> pohon keputusan atas
+      17 variabel, dilatih hanya pada <code>train_final.csv</code> resmi panitia dengan <code>random_state = 42</code>.
+      Seluruh evaluasi pohon dan perhitungan nilai harapan dilakukan di peramban Anda; tidak ada data yang dikirim ke mana pun.</p>
+
+      <h3 class="h-card mt">Mengapa model ringkas, bukan pipeline penuh</h3>
+      <p>Pipeline kompetisi memakai 176 fitur dan enam model dasar dengan berkas model 84&nbsp;MB — tidak masuk akal
+      dijalankan di peramban, dan 176 pertanyaan tidak masuk akal ditanyakan dalam wawancara. Model ringkas ini adalah
+      versi yang dapat dipakai lapangan. Kami melaporkan selisih kinerjanya secara terbuka, bukan menyamarkannya.</p>
+
+      <div class="cmp" id="cmp"></div>
+
+      <h3 class="h-card mt">Aturan keputusan tetap identik</h3>
+      <p>Yang dipertahankan persis dari pipeline kompetisi adalah bagian yang paling menentukan:
+      prediksi nilai harapan E[y] = &Sigma; p<sub>k</sub>&middot;k pada skala ordinal, lalu pemotongan dengan tiga ambang batas
+      yang diestimasi dari out-of-fold data latih. Pada pipeline penuh, langkah inilah yang menyumbang
+      <strong>+0,06269 QWK</strong> — sembilan kali lebih besar daripada seluruh pekerjaan pemodelan lainnya digabung.</p>
+    </section>
+
+    <section>
+      <h2 class="h-sec">Batasan pemakaian</h2>
+      <ul class="lim">
+        <li><strong>Alat penapisan populasi, bukan diagnosis individual.</strong> Sebaran E[y] untuk kelas 1 dan 2
+        bertumpang tindih sangat lebar. Untuk satu orang, ketidakpastiannya besar; untuk seribu orang, agregatnya dapat diandalkan.</li>
+        <li><strong>Ambang t<sub>3</sub> adalah parameter paling rapuh.</strong> Kelas 4 hanya memiliki 893 baris latih,
+        dan simpangan baku bootstrap t<sub>3</sub> 3,6&times; lebih besar daripada t<sub>1</sub>.</li>
+        <li><strong>Separuh variasi kepuasan hidup tidak terekam.</strong> Kepribadian, kualitas hubungan sosial, dan rasa
+        bermakna hidup tidak ada dalam survei kesehatan. Ini batas informasi, bukan batas algoritma.</li>
+        <li><strong>Dilatih pada satu instrumen survei, satu negara, periode 2021&ndash;2024.</strong> Penerapan pada populasi
+        atau instrumen lain memerlukan validasi tersendiri.</li>
+        <li><strong>Tidak memakai data eksternal apa pun.</strong> Hanya berkas resmi panitia.</li>
+      </ul>
+
+      <h3 class="h-card mt">Satu temuan kecil tentang kamus data</h3>
+      <p>Kamus data panitia menyederhanakan beberapa kolom. Keempat kolom <code>difficulty_*</code> dijelaskan sebagai
+      <em>1=Ya, 2=Tidak</em>, tetapi datanya berisi <strong>empat tingkat berurutan</strong> dengan rata-rata target yang naik
+      monoton (1,55 &rarr; 1,97 &rarr; 2,21 &rarr; 2,15 pada kegiatan sosial). <code>education_level</code> dijelaskan
+      sebagai empat tingkat, sedangkan datanya berisi <strong>sepuluh</strong>. Label pada formulir di atas mengikuti
+      data, bukan kamus — dan kami mencantumkan selisih ini karena memperlakukan skala empat tingkat sebagai biner
+      akan membuang sinyal yang nyata.</p>
+
+      <h3 class="h-card mt">Sumber dan reproduksi</h3>
+      <ul class="lim">
+        <li>Notebook kompetisi lengkap, <code>requirements.txt</code>, dan skrip pelatihan model ringkas ada di repositori.</li>
+        <li>Skrip <code>model/train_surrogate.py</code> memproduksi ulang <code>data/model_lifescope.json</code> secara identik.</li>
+      </ul>
+      <p><a class="btn btn-ghost" href="https://github.com/MikaelAdikara/DataQuest-Warkab" target="_blank" rel="noopener">Repositori GitHub</a></p>
+    </section>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <span>Tim Warkab &middot; Objective Quest DataQuest 5.0</span>
+    <span>Prototipe berjalan sepenuhnya di peramban &middot; tanpa server, tanpa pengiriman data</span>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
