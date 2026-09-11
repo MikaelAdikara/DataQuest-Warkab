@@ -22,20 +22,32 @@ Demo langsung: **https://mikaeladikara.github.io/DataQuest-Warkab/**
 | `model/train_surrogate.py` | Skrip yang memproduksi ulang model ringkas tersebut secara identik |
 | `docs/` | Notebook kompetisi lengkap, `requirements.txt`, dan pitch deck |
 
-## Tiga hal yang ditunjukkan prototipe ini
+## Apa yang bisa dilakukan
 
-**1 · Aturan keputusan, bukan label.** Panel *Skrining individu* menampilkan E[y] = Σ pₖ·k sebagai
-posisi pada skala kontinu, lengkap dengan ketiga ambang batas produksi. Ketika seorang responden
-jatuh 0,02 dari sebuah ambang, panel mengatakannya — sesuatu yang hilang begitu keluarannya
-disederhanakan menjadi satu label.
+**Skrining individu.** Tujuh belas pertanyaan yang muat dalam wawancara singkat. Keluarannya bukan
+label, melainkan posisi pada skala: E[y] ditampilkan sebagai jarum pada sumbu yang sama dengan
+ketiga ambang batas produksi dan sebaran populasi latih. Ketika seorang responden jatuh 0,02 dari
+sebuah ambang, panel mengatakannya — informasi yang hilang begitu keluaran disederhanakan menjadi
+satu angka. Panel *faktor pendorong* menghitung seberapa jauh E[y] bergerak bila tiap variabel
+dikembalikan ke median populasi, sehingga pembacaan dapat dijelaskan per responden.
 
-**2 · Ambang penapisan dapat digeser, dan konsekuensinya terukur.** Panel *Analisis kohort* berisi
-slider t₃. Ambang yang optimal untuk QWK menyeimbangkan seluruh kelas; penapisan kesehatan biasanya
-lebih menoleransi positif palsu daripada melewatkan kasus. Slider itu menunjukkan berapa orang
-tambahan yang tertangkap untuk setiap penurunan ambang.
+**Analisis kohort.** Muat kohort contoh atau unggah CSV sendiri; penilaian berjalan dalam irisan
+waktu sehingga antarmuka tidak membeku. Ambang penapisan t₃ dapat **diseret langsung pada
+histogram** (juga dapat digerakkan dengan panah papan tik), dan histogram berubah warna seketika
+mengikuti ambang baru — jumlah orang yang tertangkap ikut terhitung ulang. Tabel peringkat
+prioritas dapat diurutkan, dan mengklik satu baris membuka responden itu di panel skrining.
+Seluruh hasil dapat diekspor sebagai CSV.
 
-**3 · Keluaran yang berguna adalah peringkat, bukan kelas.** Tabel dua puluh responden dengan E[y]
-tertinggi adalah bentuk keluaran yang benar-benar dipakai perencana program.
+**Model card.** Spesifikasi, perbandingan terbuka terhadap pipeline kompetisi, batas pemakaian,
+dan jalur reproduksi.
+
+### Detail yang mungkin tidak langsung terlihat
+
+- Non-respons diteruskan apa adanya ke model — tidak diimputasi — persis seperti pipeline kompetisi.
+- Ambang penapisan pilihan Anda tersimpan antar kunjungan.
+- Pintasan papan tik `1` `2` `3` untuk berpindah panel; setiap panel punya tautan `#`-nya sendiri.
+- Tautan demo: `?kohort=contoh` langsung memuat kohort, `?responden=acak` langsung mengisi formulir.
+- Tidak ada skrip pihak ketiga, tidak ada permintaan jaringan setelah muat, tidak ada data yang keluar dari peramban.
 
 ## Hubungan dengan pipeline kompetisi
 
