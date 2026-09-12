@@ -20,7 +20,7 @@ Demo langsung: **https://mikaeladikara.github.io/DataQuest-Warkab/**
 | `data/model_lifescope.json` | Model ringkas 17 variabel (pohon keputusan + ambang batas), diekspor dari LightGBM |
 | `data/kohort_contoh.json` | 800 responden dari `test_final.csv` **tanpa label**, untuk demo kohort |
 | `model/train_surrogate.py` | Skrip yang memproduksi ulang model ringkas tersebut secara identik |
-| `docs/` | Notebook kompetisi lengkap, `requirements.txt`, dan pitch deck |
+| `docs/` | Notebook kompetisi lengkap, `requirements-notebook.txt`, dan pitch deck |
 
 ## Tujuh panel, masing-masing satu pekerjaan
 
@@ -93,11 +93,10 @@ Aplikasi ini statis sepenuhnya — tidak ada langkah build, tidak ada server.
 
 **GitHub Pages** menyajikannya langsung dari cabang `main` tanpa konfigurasi tambahan.
 
-**Vercel** memerlukan `vercel.json` dan `.vercelignore` yang sudah disertakan di repositori ini.
+**Vercel** memerlukan `vercel.json` yang sudah disertakan di repositori ini.
 Tanpa keduanya, Vercel memindai repo, menemukan `docs/requirements.txt` dan
 `model/train_surrogate.py`, menyimpulkan ini proyek Python, lalu gagal dengan
-*"No python entrypoint found"*. `.vercelignore` mengeluarkan kedua berkas itu dari unggahan
-(keduanya tetap ada di GitHub), dan `vercel.json` menyatakan proyek ini statis sekaligus
+*"No python entrypoint found"*. Berkas requirements dinamai `requirements-notebook.txt` agar tidak memicu deteksi itu, dan `vercel.json` menyatakan proyek ini statis sekaligus
 memasang header cache dan keamanan. Bila Anda lebih suka mengatur lewat dasbor: setel
 *Framework Preset* ke **Other**, kosongkan *Build Command*, dan biarkan *Output Directory* kosong.
 
