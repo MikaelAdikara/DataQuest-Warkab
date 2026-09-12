@@ -99,7 +99,12 @@ Tanpa keduanya, Vercel memindai repo, menemukan `docs/requirements.txt` dan
 *"No python entrypoint found"*. `.vercelignore` mengeluarkan kedua berkas itu dari unggahan
 (keduanya tetap ada di GitHub), dan `vercel.json` menyatakan proyek ini statis sekaligus
 memasang header cache dan keamanan. Bila Anda lebih suka mengatur lewat dasbor: setel
-*Framework Preset* ke **Other**, kosongkan *Build Command*, dan isi *Output Directory* dengan `.`.
+*Framework Preset* ke **Other**, kosongkan *Build Command*, dan biarkan *Output Directory* kosong.
+
+Jangan menyetel `outputDirectory` di `vercel.json` untuk proyek ini. Situs ini tidak punya langkah
+build, jadi tidak ada direktori keluaran yang diproduksi — menyetelnya membuat Vercel menyajikan
+direktori kosong dan seluruh path membalas 404. Tanpa kunci itu, Vercel menyajikan akar
+repositori apa adanya.
 
 ## Menjalankan secara lokal
 
