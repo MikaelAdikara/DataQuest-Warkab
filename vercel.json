@@ -1,8 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
-  "//": "Situs statis murni: tidak ada langkah build, berkas disajikan dari akar repo. Jangan menambahkan outputDirectory di sini — nilai string maupun null sama-sama membuat deployment gagal atau kosong. Bila situs membalas 404 di seluruh path meski build sukses, penyebabnya ada di setelan proyek Vercel (Root Directory atau Output Directory), bukan di berkas ini.",
-
   "framework": null,
 
   "headers": [
