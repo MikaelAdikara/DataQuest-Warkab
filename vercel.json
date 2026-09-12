@@ -1,6 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "//": "Situs statis murni: tidak ada langkah build, berkas disajikan dari akar repo. Keempat nilai null di bawah sengaja ditulis eksplisit — kunci yang dihilangkan membuat setelan dasbor yang menang, dan Output Directory yang terisi di dasbor membuat Vercel menyajikan direktori kosong sehingga seluruh path membalas 404.",
+
   "framework": null,
+  "buildCommand": null,
+  "installCommand": null,
+  "outputDirectory": null,
+
   "headers": [
     {
       "source": "/data/(.*)",
