@@ -27,8 +27,8 @@
       <dl>
         <dt>Pohon keputusan</dt><dd id="m-trees">—</dd>
         <dt>Variabel</dt><dd id="m-feats">—</dd>
-        <dt>QWK out-of-fold</dt><dd id="m-qwk">—</dd>
-        <dt>Seed</dt><dd id="m-seed">—</dd>
+        <dt>QWK out-of-fold<button type="button" class="ib" data-info="qwk" aria-expanded="false" aria-label="Penjelasan">i</button></dt><dd id="m-qwk">—</dd>
+        <dt>Seed<button type="button" class="ib" data-info="seed" aria-expanded="false" aria-label="Penjelasan">i</button></dt><dd id="m-seed">—</dd>
       </dl>
     </div>
   </aside>
@@ -60,6 +60,20 @@
         <div class="hero-art">
           <svg id="hero-gauge" viewBox="0 0 440 210" role="img" aria-label="Dua ratus kotak mewakili responden survei, diwarnai menurut tingkat kepuasan"></svg>
           <div class="hero-cap">Tiap kotak satu responden. Yang berwarna hangat adalah 4,7% yang perlu ditemukan.</div>
+        </div>
+      </div>
+
+      <div class="card benefit">
+        <div>
+          <div class="b-lab">Yang tersedia sekarang</div>
+          <div class="b-big">4,7%</div>
+          <div class="b-sub">Satu angka agregat di laporan survei. Tidak memberi tahu siapa orangnya.</div>
+        </div>
+        <div class="b-arrow" aria-hidden="true">&rarr;</div>
+        <div>
+          <div class="b-lab">Yang LifeScope hasilkan</div>
+          <div class="b-list" id="b-list"></div>
+          <div class="b-sub">Daftar bernama dan terurut, siap dibagi ke petugas lapangan atau diekspor.</div>
         </div>
       </div>
 
@@ -95,7 +109,7 @@
         <section class="card card-2">
           <div class="gauge">
             <div class="gauge-head">
-              <div class="value"><span class="v" id="ey">—</span><span class="u">E[y] pada skala 1–4</span></div>
+              <div class="value"><span class="v" id="ey">—</span><span class="u">E[y] pada skala 1–4<button type="button" class="ib" data-info="ey" aria-expanded="false" aria-label="Penjelasan">i</button><button type="button" class="ib" data-info="ambang" aria-expanded="false" aria-label="Penjelasan">i</button></span></div>
               <div class="klass">
                 <div><span class="pill" id="kelas">—</span></div>
                 <div class="mg" id="margin">—</div>
@@ -109,7 +123,7 @@
         </section>
 
         <section class="card">
-          <div class="card-head"><h2>Faktor pendorong</h2><span class="meta">perubahan E[y] bila dikembalikan ke median</span></div>
+          <div class="card-head"><h2>Faktor pendorong<button type="button" class="ib" data-info="driver" aria-expanded="false" aria-label="Penjelasan">i</button></h2><span class="meta">perubahan E[y] bila dikembalikan ke median</span></div>
           <div class="rule"></div>
           <div class="card-body t"><div id="drivers"></div></div>
         </section>
@@ -151,7 +165,7 @@
             </div>
             <div class="figs">
               <div class="fig"><div class="v" id="k-n">—</div><div class="l">responden</div></div>
-              <div class="fig"><div class="v" id="k-mean">—</div><div class="l">rata-rata E[y]</div></div>
+              <div class="fig"><div class="v" id="k-mean">—</div><div class="l">rata-rata E[y]<button type="button" class="ib" data-info="ey" aria-expanded="false" aria-label="Penjelasan">i</button></div></div>
               <div class="fig"><div class="v" id="k-risk">—</div><div class="l">kelas 3 atau 4</div></div>
             </div>
           </div>
@@ -174,7 +188,7 @@
               <div class="fig"><div class="v" id="q-1">—</div><div class="l">kuartil bawah E[y]</div></div>
               <div class="fig"><div class="v" id="q-2">—</div><div class="l">median E[y]</div></div>
               <div class="fig"><div class="v" id="q-3">—</div><div class="l">kuartil atas E[y]</div></div>
-              <div class="fig"><div class="v" id="q-w">—</div><div class="l">rentang antar-kuartil</div></div>
+              <div class="fig"><div class="v" id="q-w">—</div><div class="l">rentang antar-kuartil<button type="button" class="ib" data-info="kuartil" aria-expanded="false" aria-label="Penjelasan">i</button></div></div>
             </div>
             <p style="flex:1 1 100%;margin:0;font-size:12.5px;color:var(--ink-3);text-wrap:pretty" id="q-txt">—</p>
           </div>
@@ -252,14 +266,14 @@
 
         <div style="display:grid;gap:16px">
           <section class="card card-2 dial">
-            <div class="dial-row"><span class="t">Ambang penapisan t₃</span><span class="v" id="l-t3">—</span></div>
+            <div class="dial-row"><span class="t">Ambang penapisan t₃<button type="button" class="ib" data-info="ambang" aria-expanded="false" aria-label="Penjelasan">i</button></span><span class="v" id="l-t3">—</span></div>
             <div class="meter">
               <div class="meter-bar"><i id="l-meter"></i></div>
               <div class="meter-lab"><span id="l-flag">—</span><span id="l-delta">—</span></div>
             </div>
             <div class="tradeoff">
               <div class="trade"><div class="v" id="l-extra">—</div><div class="l">tambahan orang tertangkap dibanding optimal QWK</div></div>
-              <div class="trade"><div class="v" id="l-load">—</div><div class="l">beban tindak lanjut per 1.000 responden</div></div>
+              <div class="trade"><div class="v" id="l-load">—</div><div class="l">beban tindak lanjut per 1.000 responden<button type="button" class="ib" data-info="beban" aria-expanded="false" aria-label="Penjelasan">i</button></div></div>
             </div>
           </section>
           <section class="card">
@@ -309,11 +323,11 @@
         <input id="s-range" type="range" min="0" max="0" step="1" value="0" aria-label="Telusuri responden kohort">
         <div class="verdict">
           <div class="vd">
-            <div class="h">Dengan <code>argmax</code>, kelas berprobabilitas tertinggi</div>
+            <div class="h">Dengan <code>argmax</code>, kelas berprobabilitas tertinggi<button type="button" class="ib" data-info="argmax" aria-expanded="false" aria-label="Penjelasan">i</button></div>
             <div class="b"><span class="pip" id="s-am">—</span><b id="s-am-t">—</b></div>
           </div>
           <div class="vd">
-            <div class="h">Aturan kami, nilai harapan dipotong tiga ambang</div>
+            <div class="h">Aturan kami, nilai harapan dipotong tiga ambang<button type="button" class="ib" data-info="ey" aria-expanded="false" aria-label="Penjelasan">i</button></div>
             <div class="b"><span class="pip" id="s-th">—</span><b id="s-th-t">—</b></div>
           </div>
         </div>
@@ -331,7 +345,7 @@
     </header>
     <div class="pad wide cols">
       <div>
-        <h3 class="sub">Spesifikasi</h3>
+        <h3 class="sub">Spesifikasi<button type="button" class="ib" data-info="oof" aria-expanded="false" aria-label="Penjelasan">i</button></h3>
         <dl class="spec" id="spec"></dl>
 
         <h3 class="sub">Terhadap pipeline kompetisi</h3>

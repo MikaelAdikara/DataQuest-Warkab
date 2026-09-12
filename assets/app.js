@@ -732,6 +732,83 @@ function exportCSV() {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+
+/* ------------------------------------------------------ tombol info (i) -- */
+const INFO = {
+  ey: { t: 'Nilai harapan E[y]', f: 'E[y] = \u03a3 p\u2096 \u00b7 k,   k = 1, 2, 3, 4',
+    b: 'Rata-rata berbobot dari keempat probabilitas kelas, bukan kelas tertinggi. QWK menghukum jarak secara kuadratik, jadi penduga optimalnya rata-rata, bukan modus. Pada pipeline kompetisi langkah ini sendiri menyumbang +0,06269 QWK.' },
+  ambang: { t: 'Tiga ambang batas', f: 'kelas = 1 + [E>t\u2081] + [E>t\u2082] + [E>t\u2083]',
+    b: 'Nilainya 1,560 / 1,991 / 2,481, diestimasi dari out-of-fold data latih dengan rata-rata bootstrap. t\u2083 paling rapuh karena kelas 4 cuma punya 893 baris latih; simpangan bakunya 3,6\u00d7 t\u2081.' },
+  qwk: { t: 'Quadratic Weighted Kappa', f: '\u03ba = 1 \u2212 \u03a3 w\u1d62\u2c7c O\u1d62\u2c7c / \u03a3 w\u1d62\u2c7c E\u1d62\u2c7c,   w\u1d62\u2c7c = (i\u2212j)\u00b2 / 9',
+    b: 'Metrik kompetisi. Menebak kelas 4 sebagai 1 dihukum 9\u00d7 lebih berat daripada 2 sebagai 1. Menebak kelas mayoritas untuk semua orang memberi akurasi 50,4% dengan \u03ba tepat nol.' },
+  oof: { t: 'Out-of-fold', b: 'Tiap baris dinilai oleh model yang tidak pernah melihatnya saat latihan, memakai 5-fold stratified. Semua angka di halaman ini berasal dari sana, tidak satu pun diambil dari data uji.' },
+  driver: { t: 'Faktor pendorong', f: '\u0394\u1d62 = E[y] \u2212 E[y | x\u1d62 = median]',
+    b: 'Satu variabel dikembalikan ke median populasi, sisanya dibiarkan, lalu selisih E[y] diukur. Positif berarti nilai responden mendorongnya ke arah kurang puas. Tujuh yang terbesar ditampilkan.' },
+  kuartil: { t: 'Rentang antar-kuartil', f: 'IQR = Q\u2083 \u2212 Q\u2081',
+    b: 'Lebar sebaran separuh kohort di tengah. Makin sempit, makin terpusat penilaiannya, dan makin banyak orang yang jatuh dekat ambang.' },
+  beban: { t: 'Beban tindak lanjut', f: 'ditandai / total \u00d7 1.000',
+    b: 'Berapa orang per seribu responden yang masuk antrean tindak lanjut pada ambang saat ini. Dipakai menakar kapasitas: menurunkan t\u2083 menaikkan angka ini, dan angka inilah yang harus muat di kapasitas petugas.' },
+  argmax: { t: 'argmax', f: 'kelas = arg max\u2096 p\u2096',
+    b: 'Ambil kelas dengan probabilitas tertinggi. Optimal untuk akurasi, tetapi membuang informasi jarak yang justru dihitung QWK. Pada kohort contoh, argmax dan aturan ordinal berbeda di 126 dari 800 responden.' },
+  seed: { t: 'random_state', b: 'Satu seed, 42, dipakai di pembagian fold, pelatihan keenam model, resampel bootstrap, dan analisis kurva belajar. Menjalankan ulang train_surrogate.py menghasilkan berkas model yang identik.' }
+};
+let popEl = null, popBtn = null;
+function closePop() {
+  if (!popEl) return;
+  popEl.classList.remove('on');
+  if (popBtn) popBtn.setAttribute('aria-expanded', 'false');
+  popBtn = null;
+}
+function placePop() {
+  if (!popEl || !popBtn) return;
+  const r = popBtn.getBoundingClientRect();
+  if (!r.width && !r.height) return;            /* pemicu sedang tersembunyi */
+  const pw = popEl.offsetWidth, ph = popEl.offsetHeight;
+  let x = r.left, y = r.bottom + 9, ox = 'top left';
+  if (x + pw > innerWidth - 12) { x = Math.max(12, r.right - pw); ox = 'top right'; }
+  if (y + ph > innerHeight - 12) { y = Math.max(12, r.top - ph - 9); ox = ox.replace('top', 'bottom'); }
+  popEl.style.transformOrigin = ox;
+  popEl.style.left = x + 'px';
+  popEl.style.top = y + 'px';
+}
+function openPop(btn) {
+  const d = INFO[btn.dataset.info];
+  if (!d) return;
+  if (!popEl) {
+    popEl = document.createElement('div');
+    popEl.className = 'pop';
+    popEl.setAttribute('role', 'dialog');
+    document.body.append(popEl);
+  }
+  popEl.setAttribute('aria-label', d.t);
+  popEl.innerHTML = '<h4>' + d.t + '</h4>' + (d.f ? '<p class="f">' + d.f + '</p>' : '') + '<p>' + d.b + '</p>';
+  popEl.classList.add('on');
+  btn.setAttribute('aria-expanded', 'true');
+  popBtn = btn;
+  placePop();
+}
+function setupInfo() {
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest ? ev.target.closest('.ib') : null;
+    if (b) { ev.preventDefault(); (popBtn === b) ? closePop() : openPop(b); return; }
+    if (popEl && !ev.target.closest('.pop')) closePop();
+  });
+  addEventListener('keydown', ev => { if (ev.key === 'Escape') closePop(); });
+  addEventListener('scroll', placePop, true);
+  addEventListener('resize', placePop);
+}
+
+/* ------------------------------------------------------- pita manfaat --- */
+function buildBenefit() {
+  const host = $('#b-list');
+  if (!host) return;
+  /* tiga teratas kohort contoh, angka nyata dari model ini */
+  const rows = [[2.932, 4, 'Responden #1'], [2.790, 4, 'Responden #2'], [2.738, 4, 'Responden #3']];
+  host.innerHTML = rows.map(r =>
+    '<div class="b-row"><span class="pip" style="background:' + CSSG[r[1] - 1] + ';color:#fff">' + r[1] +
+    '</span><span class="e">' + fmt(r[0]) + '</span><span class="who">' + r[2] + '</span></div>').join('');
+}
+
 /* ------------------------------------------------------------------ rute -- */
 function go(v) {
   if (VIEWS.indexOf(v) < 0) v = 'ikhtisar';
@@ -832,7 +909,7 @@ function buildNav() {
     ['Sumbangan aturan keputusan', '+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5)]
   ].map(r => '<div><dt>' + r[0] + '</dt><dd class="n">' + r[1] + '</dd></div>').join('');
 
-  buildForm(); buildGauge(); buildHeroGauge();
+  buildForm(); buildGauge(); buildHeroGauge(); buildBenefit(); setupInfo();
   writeX(MEDIAN.slice()); render();
 
   $('#a-median').addEventListener('click', () => { writeX(MEDIAN.slice()); render(); });
@@ -864,4 +941,9 @@ function buildNav() {
   const q = new URLSearchParams(location.search);
   if (q.get('kohort') === 'contoh') { $('#a-kohort').click(); if (!location.hash) go('kohort'); }
   if (q.get('responden') === 'acak') { go('skrining'); $('#a-acak').click(); }
+  const qi = q.get('info');
+  if (qi && INFO[qi]) {
+    const ib = $('.ib[data-info="' + qi + '"]');
+    if (ib) setTimeout(() => openPop(ib), 60);
+  }
 })();
