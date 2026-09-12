@@ -6,20 +6,77 @@
    ========================================================================== */
 'use strict';
 
-const ORD = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
-const NAMA = ['Sangat puas', 'Puas', 'Tidak puas', 'Sangat tidak puas'];
 const NS = 'http://www.w3.org/2000/svg';
+const NAMA = ['Sangat puas', 'Puas', 'Tidak puas', 'Sangat tidak puas'];
+const FLAT = ['#277a66', '#7dab97', '#dda257', '#b33a22'];          /* untuk isian rata */
+const GRAD = ['url(#PFXg1)', 'url(#PFXg2)', 'url(#PFXg3)', 'url(#PFXg4)'];
+const RAMP = [                                                       /* berhenti gradien */
+  ['oklch(0.595 0.098 172)', 'oklch(0.482 0.084 176)'],
+  ['oklch(0.762 0.070 162)', 'oklch(0.662 0.064 164)'],
+  ['oklch(0.812 0.128 72)',  'oklch(0.726 0.132 68)'],
+  ['oklch(0.598 0.166 32)',  'oklch(0.498 0.168 29)']
+];
+const CSSG = ['var(--g1)', 'var(--g2)', 'var(--g3)', 'var(--g4)'];
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const fmt = (v, d = 3) => Number(v).toFixed(d).replace('.', ',');
 const pct = (v, d = 1) => (v * 100).toFixed(d).replace('.', ',') + '%';
+const idn = v => Number(v).toLocaleString('id-ID');
 const store = {
   get(k, f) { try { const v = localStorage.getItem('lifescope.' + k); return v === null ? f : JSON.parse(v); } catch { return f; } },
   set(k, v) { try { localStorage.setItem('lifescope.' + k, JSON.stringify(v)); } catch { /* mode privat */ } }
 };
+function svg(tag, attrs, parent) {
+  const el = document.createElementNS(NS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  if (parent) parent.append(el);
+  return el;
+}
+/* defs gradien, satu set per SVG agar id tidak bertabrakan */
+function defs(root, pfx) {
+  const d = svg('defs', {}, root);
+  RAMP.forEach((stops, i) => {
+    const g = svg('linearGradient', { id: pfx + 'g' + (i + 1), x1: 0, y1: 0, x2: 0, y2: 1 }, d);
+    svg('stop', { offset: '0%', 'stop-color': stops[0] }, g);
+    svg('stop', { offset: '100%', 'stop-color': stops[1] }, g);
+  });
+  const ink = svg('linearGradient', { id: pfx + 'gi', x1: 0, y1: 0, x2: 0, y2: 1 }, d);
+  svg('stop', { offset: '0%', 'stop-color': 'oklch(0.320 0.018 205)' }, ink);
+  svg('stop', { offset: '100%', 'stop-color': 'oklch(0.222 0.016 205)' }, ink);
+  return i => 'url(#' + pfx + 'g' + (i + 1) + ')';
+}
 
-/* ------------------------------------------------------------- variabel -- */
+/* ------------------------------------------------------------------ ikon -- */
+const ICON = {
+  ikhtisar: 'M4 13h7V4H4v9Zm0 7h7v-5H4v5Zm9 0h7v-9h-7v9Zm0-16v5h7V4h-7Z',
+  skrining: 'M12 3a9 9 0 1 0 9 9M12 12l6-6M12 12a1.6 1.6 0 1 0 0-3.2A1.6 1.6 0 0 0 12 12Z',
+  kohort:   'M4 20v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.5 10v-1.6a4 4 0 0 0-2.4-3.6M15 4.3a3 3 0 0 1 0 5.4',
+  prioritas:'M4 6h2M4 12h2M4 18h2M9 6h11M9 12h8M9 18h5',
+  ambang:   'M4 7h10M18 7h2M4 17h4M12 17h8M15 4v6M8 14v6',
+  metode:   'M6 3v10a3 3 0 0 0 3 3h6M18 13a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM6 3a1.6 1.6 0 1 0 0 .01',
+  model:    'M12 3 3 7.5v9L12 21l9-4.5v-9L12 3Zm0 0v18M3 7.5l9 4.5 9-4.5'
+};
+const NAV = [
+  { v: 'ikhtisar',  l: 'Ikhtisar' },
+  { g: 'Penapisan' },
+  { v: 'skrining',  l: 'Skrining' },
+  { v: 'kohort',    l: 'Kohort' },
+  { v: 'prioritas', l: 'Prioritas' },
+  { g: 'Kalibrasi' },
+  { v: 'ambang',    l: 'Ambang' },
+  { g: 'Tentang' },
+  { v: 'metode',    l: 'Cara kerja' },
+  { v: 'model',     l: 'Model' }
+];
+const VIEWS = NAV.filter(n => n.v).map(n => n.v);
+function icon(name, cls) {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"' + (cls ? ' class="' + cls + '"' : '') +
+    '><path d="' + ICON[name] + '"/></svg>';
+}
+
+/* -------------------------------------------------------------- variabel -- */
 const YN = [[1, 'Ya'], [2, 'Tidak']];
 const FREQ = [[1, 'Setiap hari'], [2, 'Setiap minggu'], [3, 'Setiap bulan'],
               [4, 'Beberapa kali setahun'], [5, 'Tidak pernah']];
@@ -58,18 +115,18 @@ const FIELDS = [
 ];
 const byKey = Object.fromEntries(FIELDS.map(f => [f.k, f]));
 
-/* --------------------------------------------------------------- state --- */
+/* ----------------------------------------------------------------- state -- */
 let M = null, CTX = null, MEDIAN = [], IDX = {};
 let COHORT = null, T3 = null, T3_OPT = null, SORT = { key: 'E', dir: -1 };
-let cohortRaw = null, gaugeRefs = null, histBins = null, histRefs = null;
+let cohortRaw = null, gaugeRefs = null;
+const H = {};                                   /* status kedua histogram */
 
-/* ----------------------------------------------------------- inferensi --- */
+/* ------------------------------------------------------------- inferensi -- */
 function leaf(node, x) {
   while (node.v === undefined) {
     const v = x[node.f];
-    node = (v === null || v === undefined || Number.isNaN(v))
-      ? (node.m ? node.l : node.r)
-      : (v <= node.t ? node.l : node.r);
+    node = (v === null || v === undefined || Number.isNaN(v)) ? (node.m ? node.l : node.r)
+                                                             : (v <= node.t ? node.l : node.r);
   }
   return node.v;
 }
@@ -83,31 +140,22 @@ function proba(x) {
 }
 const expected = p => p[0] + 2 * p[1] + 3 * p[2] + 4 * p[3];
 const klas = (E, t) => 1 + (E > t[0] ? 1 : 0) + (E > t[1] ? 1 : 0) + (E > t[2] ? 1 : 0);
+const argmaxK = p => p.indexOf(Math.max(...p)) + 1;
+/* ambang efektif: t1 dan t2 tetap, t3 mengikuti pilihan pengguna */
+const TH = () => [M.thresholds[0], M.thresholds[1], T3];
 
-function svg(tag, attrs, parent) {
-  const el = document.createElementNS(NS, tag);
-  for (const k in attrs) el.setAttribute(k, attrs[k]);
-  if (parent) parent.append(el);
-  return el;
-}
-
-/* ------------------------------------------------------------ formulir --- */
+/* -------------------------------------------------------------- formulir -- */
 function buildForm() {
   const form = $('#form');
-  const groups = [...new Set(FIELDS.map(f => f.g))];
-  for (const g of groups) {
+  for (const g of [...new Set(FIELDS.map(f => f.g))]) {
     const fs = document.createElement('fieldset');
     fs.className = 'fieldset';
-    const lg = document.createElement('legend');
-    lg.textContent = g;
-    fs.append(lg);
+    const lg = document.createElement('legend'); lg.textContent = g; fs.append(lg);
     for (const f of FIELDS.filter(x => x.g === g)) {
       const row = document.createElement('div');
-      row.className = 'row';
-      row.dataset.k = f.k;
+      row.className = 'row'; row.dataset.k = f.k;
       const lab = document.createElement('label');
-      lab.htmlFor = 'i_' + f.k;
-      lab.textContent = f.l;
+      lab.htmlFor = 'i_' + f.k; lab.textContent = f.l;
       let inp;
       if (f.o) {
         inp = document.createElement('select');
@@ -115,15 +163,13 @@ function buildForm() {
         inp.append(new Option('Tidak menjawab', ''));
       } else {
         inp = document.createElement('input');
-        inp.type = 'number';
-        inp.min = f.n.min; inp.max = f.n.max; inp.step = f.n.step;
+        inp.type = 'number'; inp.min = f.n.min; inp.max = f.n.max; inp.step = f.n.step;
         inp.inputMode = 'decimal';
       }
       inp.id = 'i_' + f.k;
       inp.addEventListener('input', render);
       inp.addEventListener('change', render);
-      row.append(lab, inp);
-      fs.append(row);
+      row.append(lab, inp); fs.append(row);
     }
     form.append(fs);
   }
@@ -132,7 +178,7 @@ function readX() {
   return M.features.map((k, i) => {
     const e = document.getElementById('i_' + k);
     if (!e) return MEDIAN[i];
-    if (e.value === '') return NaN;          // non-respons diteruskan apa adanya
+    if (e.value === '') return NaN;                 /* non-respons diteruskan apa adanya */
     const v = parseFloat(e.value);
     return Number.isNaN(v) ? MEDIAN[i] : v;
   });
@@ -146,22 +192,20 @@ function writeX(x) {
     if (e.tagName === 'SELECT') {
       const r = String(Math.round(v));
       e.value = [...e.options].some(o => o.value === r) ? r : '';
-    } else {
-      e.value = k === 'age' ? Math.round(v) : Math.round(v * 10) / 10;
-    }
+    } else e.value = k === 'age' ? Math.round(v) : Math.round(v * 10) / 10;
   });
 }
 
-/* ---------------------------------------------------------- instrumen ---- */
+/* ------------------------------------------------------------- instrumen -- */
 const GL = 64, GR = 598;
 const gx = v => GL + (Math.min(4, Math.max(1, v)) - 1) / 3 * (GR - GL);
 
 function buildGauge() {
   const root = $('#gauge');
   root.innerHTML = '';
-  const BASE = 118, TOP = 34, DEN0 = 128, DEN1 = 158, RY = 166, RH = 26;
+  const g = defs(root, 'G');
+  const BASE = 120, TOP = 34, DEN0 = 130, DEN1 = 160, RY = 168, RH = 28;
 
-  /* sebaran populasi latih — konteks diam di belakang pembacaan individu */
   if (CTX && CTX.hist && CTX.hist.length) {
     const mx = Math.max(...CTX.hist);
     const pts = CTX.hist.map((c, i) => {
@@ -176,56 +220,93 @@ function buildGauge() {
       .textContent = 'sebaran populasi latih';
   }
 
-  /* zona ambang batas */
   const t = M.thresholds;
-  [[1, t[0]], [t[0], t[1]], [t[1], t[2]], [t[2], 4]].forEach((z, i) => {
-    svg('rect', { x: gx(z[0]), y: RY, width: gx(z[1]) - gx(z[0]), height: RH, fill: ORD[i] }, root);
+  const zones = [[1, t[0]], [t[0], t[1]], [t[1], t[2]], [t[2], 4]];
+  zones.forEach((z, i) => {
+    svg('rect', { x: gx(z[0]), y: RY, width: gx(z[1]) - gx(z[0]), height: RH,
+      fill: g(i), rx: i === 0 || i === 3 ? 7 : 0 }, root);
   });
+  svg('rect', { x: gx(1), y: RY, width: gx(4) - gx(1), height: RH, rx: 7, fill: 'none',
+    stroke: 'oklch(1 0 0 / 0.4)', 'stroke-width': 1 }, root);
   svg('line', { x1: GL, y1: BASE, x2: GR, y2: BASE, stroke: 'var(--line-2)', 'stroke-width': 1 }, root);
 
-  /* batang probabilitas, ditempatkan pada posisi kelasnya di sumbu yang sama */
   const bars = [], labels = [];
   for (let k = 0; k < 4; k++) {
-    const w = 40, x = gx(k + 1) - w / 2;
-    bars.push(svg('rect', { x, y: TOP, width: w, height: BASE - TOP, fill: ORD[k], rx: 2, class: 'pbar' }, root));
-    const g = svg('g', { class: 'plabel' }, root);
-    const tx = svg('text', {
-      x: gx(k + 1), y: TOP - 8, 'text-anchor': 'middle', 'font-size': 11.5,
-      'font-family': 'var(--mono)', 'font-weight': 600, fill: 'var(--ink)'
-    }, g);
-    labels.push({ g, tx, span: BASE - TOP });
+    const w = 42, x = gx(k + 1) - w / 2;
+    bars.push(svg('rect', { x, y: TOP, width: w, height: BASE - TOP, fill: g(k), rx: 5, class: 'pbar' }, root));
+    const lg = svg('g', { class: 'plabel' }, root);
+    const tx = svg('text', { x: gx(k + 1), y: TOP - 9, 'text-anchor': 'middle', 'font-size': 11.5,
+      'font-family': 'var(--mono)', 'font-weight': 640, fill: 'var(--ink)' }, lg);
+    labels.push({ g: lg, tx, span: BASE - TOP });
   }
 
-  /* penanda ambang dan ujung sumbu */
   t.forEach((v, i) => {
-    svg('line', { x1: gx(v), y1: RY - 6, x2: gx(v), y2: RY + RH + 6, stroke: 'var(--ink)', 'stroke-width': 1 }, root);
-    svg('text', {
-      x: gx(v), y: RY + RH + 22, 'text-anchor': 'middle', 'font-size': 10.5,
-      'font-family': 'var(--mono)', fill: 'var(--ink-3)'
-    }, root).textContent = 't' + (i + 1) + ' ' + fmt(v);
+    svg('line', { x1: gx(v), y1: RY - 7, x2: gx(v), y2: RY + RH + 7, stroke: 'var(--ink)', 'stroke-width': 1.2 }, root);
+    svg('text', { x: gx(v), y: RY + RH + 23, 'text-anchor': 'middle', 'font-size': 10.5,
+      'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = 't' + (i + 1) + ' ' + fmt(v);
   });
-  svg('text', { x: GL, y: RY + RH + 22, 'text-anchor': 'start', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '1,0';
-  svg('text', { x: GR, y: RY + RH + 22, 'text-anchor': 'end', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '4,0';
+  svg('text', { x: GL, y: RY + RH + 23, 'text-anchor': 'start', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '1,0';
+  svg('text', { x: GR, y: RY + RH + 23, 'text-anchor': 'end', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '4,0';
 
-  /* jarum — satu-satunya elemen yang bergerak */
   const needle = svg('g', { class: 'needle' }, root);
-  svg('polygon', { points: '-6,14 6,14 0,24', fill: 'var(--ink)' }, needle);
-  svg('line', { x1: 0, y1: 22, x2: 0, y2: RY + RH + 4, stroke: 'var(--ink)', 'stroke-width': 1.75 }, needle);
-
+  svg('polygon', { points: '-7,12 7,12 0,24', fill: 'url(#Ggi)' }, needle);
+  svg('line', { x1: 0, y1: 22, x2: 0, y2: RY + RH + 4, stroke: 'var(--ink)', 'stroke-width': 1.8 }, needle);
   gaugeRefs = { bars, labels, needle };
 }
 
-/* -------------------------------------------------------------- render --- */
+function buildHeroGauge() {
+  const root = $('#hero-gauge');
+  if (!root) return;
+  root.innerHTML = '';
+  const g = defs(root, 'H');
+  const L = 22, R = 398, RY = 112, RH = 26, D0 = 44, D1 = 104;
+  const px = v => L + (Math.min(4, Math.max(1, v)) - 1) / 3 * (R - L);
+  const t = M.thresholds;
+  if (CTX && CTX.hist && CTX.hist.length) {
+    const mx = Math.max(...CTX.hist);
+    const pts = CTX.hist.map((c, i) => {
+      const v = (CTX.edges[i] + CTX.edges[i + 1]) / 2;
+      return px(v).toFixed(1) + ',' + (D1 - c / mx * (D1 - D0)).toFixed(1);
+    });
+    svg('polygon', { points: px(CTX.edges[0]) + ',' + D1 + ' ' + pts.join(' ') +
+      ' ' + px(CTX.edges[CTX.edges.length - 1]) + ',' + D1, fill: 'var(--surface-3)' }, root);
+    svg('text', { x: R, y: D1 - 6, 'text-anchor': 'end', 'font-size': 9.5, fill: 'var(--ink-3)' }, root)
+      .textContent = 'sebaran populasi';
+  }
+  [[1, t[0]], [t[0], t[1]], [t[1], t[2]], [t[2], 4]].forEach((z, i) => {
+    svg('rect', { x: px(z[0]), y: RY, width: px(z[1]) - px(z[0]), height: RH, fill: g(i),
+      rx: i === 0 || i === 3 ? 7 : 0 }, root);
+  });
+  /* responden contoh: median populasi, dihitung nyata */
+  const p = proba(MEDIAN.slice()), E = expected(p), k = klas(E, t);
+  const X = px(E);
+  svg('polygon', { points: (X - 7) + ',24 ' + (X + 7) + ',24 ' + X + ',36', fill: 'url(#Hgi)' }, root);
+  svg('line', { x1: X, y1: 34, x2: X, y2: RY + RH + 5, stroke: 'var(--ink)', 'stroke-width': 1.8 }, root);
+  svg('text', { x: X, y: 16, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 640,
+    'font-family': 'var(--mono)', fill: 'var(--ink)' }, root).textContent = 'E[y] ' + fmt(E);
+  t.forEach((v, i) => {
+    svg('line', { x1: px(v), y1: RY - 5, x2: px(v), y2: RY + RH + 5, stroke: 'var(--ink)', 'stroke-width': 1 }, root);
+    svg('text', { x: px(v), y: RY + RH + 20, 'text-anchor': 'middle', 'font-size': 10,
+      'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = 't' + (i + 1);
+  });
+  svg('text', { x: L, y: RY + RH + 20, 'font-size': 10, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '1,0';
+  svg('text', { x: R, y: RY + RH + 20, 'text-anchor': 'end', 'font-size': 10, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '4,0';
+  svg('text', { x: (L + R) / 2, y: RY + RH + 38, 'text-anchor': 'middle', 'font-size': 10.5, fill: 'var(--ink-3)' }, root)
+    .textContent = 'responden median populasi → kelas ' + k + ', ' + NAMA[k - 1];
+}
+
+/* ---------------------------------------------------------------- render -- */
 function render() {
-  if (!M) return;
-  const x = readX(), p = proba(x), E = expected(p), k = klas(E, M.thresholds);
+  if (!M || !gaugeRefs) return;
+  const x = readX(), p = proba(x), E = expected(p), k = klas(E, TH());
 
   $('#ey').textContent = fmt(E);
-  const ke = $('#kelas');
-  ke.textContent = k + ' · ' + NAMA[k - 1];
-  ke.style.color = ORD[k - 1];
+  const pill = $('#kelas');
+  pill.textContent = k + ' · ' + NAMA[k - 1];
+  pill.style.background = CSSG[k - 1];
+  pill.style.color = (k === 2 || k === 3) ? 'var(--ink)' : '#fff';
 
-  const d = Math.min.apply(null, M.thresholds.map(t => Math.abs(E - t)));
+  const d = Math.min(...TH().map(t => Math.abs(E - t)));
   const mg = $('#margin');
   mg.textContent = d > 0.12 ? fmt(d) + ' dari ambang terdekat' : 'hanya ' + fmt(d) + ' dari ambang — tidak tegas';
   mg.style.color = d > 0.12 ? '' : 'var(--s4)';
@@ -236,14 +317,12 @@ function render() {
 
   gaugeRefs.needle.setAttribute('transform', 'translate(' + gx(E).toFixed(2) + ',0)');
   p.forEach((v, i) => {
-    gaugeRefs.bars[i].style.transform = 'scaleY(' + Math.max(0.0025, v).toFixed(4) + ')';
+    gaugeRefs.bars[i].style.transform = 'scaleY(' + Math.max(0.003, v).toFixed(4) + ')';
     const L = gaugeRefs.labels[i];
-    /* label tidak boleh turun sampai menyentuh garis dasar ketika probabilitasnya kecil */
-    L.g.setAttribute('transform', 'translate(0,' + Math.min(L.span - 12, L.span * (1 - v)).toFixed(1) + ')');
+    L.g.setAttribute('transform', 'translate(0,' + Math.min(L.span - 14, L.span * (1 - v)).toFixed(1) + ')');
     L.tx.textContent = pct(v, v < 0.01 ? 2 : 1);
-    L.g.style.opacity = v < 0.004 ? 0.35 : 1;
+    L.g.style.opacity = v < 0.004 ? 0.4 : 1;
   });
-
   renderDrivers(x, E);
 }
 
@@ -254,13 +333,13 @@ function renderDrivers(x, E) {
     const y = x.slice(); y[i] = MEDIAN[i];
     return { k, d: E - expected(proba(y)) };
   }).filter(r => r && Math.abs(r.d) > 0.0005)
-    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d))
-    .slice(0, 7);
+    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 7);
 
   host.innerHTML = '';
   $$('.row.hi').forEach(r => r.classList.remove('hi'));
   if (!rows.length) {
-    host.innerHTML = '<p class="status" style="margin:2px 0">Seluruh variabel berada pada median populasi. Ubah salah satu jawaban, atau muat responden acak, untuk melihat apa yang menggerakkan E[y].</p>';
+    host.innerHTML = '<p class="status" style="margin:2px 0">Seluruh variabel berada pada median populasi. ' +
+      'Ubah salah satu jawaban, atau muat responden acak, untuk melihat apa yang menggerakkan E[y].</p>';
     return;
   }
   const mx = Math.abs(rows[0].d);
@@ -270,9 +349,8 @@ function renderDrivers(x, E) {
     const w = Math.abs(r.d) / mx * 50;
     el.innerHTML =
       '<span class="nm">' + ((byKey[r.k] && byKey[r.k].l) || r.k) + '</span>' +
-      '<span class="drv-track"><i class="drv-mid"></i><i class="drv-fill" style="' +
-        'left:' + (r.d >= 0 ? 50 : 50 - w) + '%;width:' + w + '%;background:' +
-        (r.d >= 0 ? 'var(--s4)' : 'var(--s1)') + '"></i></span>' +
+      '<span class="drv-track"><i class="drv-mid"></i><i class="drv-fill" style="left:' +
+        (r.d >= 0 ? 50 : 50 - w) + '%;width:' + w + '%;background:' + (r.d >= 0 ? 'var(--g4)' : 'var(--g1)') + '"></i></span>' +
       '<span class="dv">' + (r.d >= 0 ? '+' : '−') + fmt(Math.abs(r.d)) + '</span>';
     el.addEventListener('pointerenter', () => { const q = $('.row[data-k="' + r.k + '"]'); if (q) q.classList.add('hi'); });
     el.addEventListener('pointerleave', () => { const q = $('.row[data-k="' + r.k + '"]'); if (q) q.classList.remove('hi'); });
@@ -280,13 +358,12 @@ function renderDrivers(x, E) {
   }
 }
 
-/* -------------------------------------------------------------- kohort --- */
+/* ------------------------------------------------------------------ skor -- */
 function scoreCohort(rows, onProgress) {
-  /* Irisan waktu 12 ms, dijadwalkan dengan setTimeout — bukan requestAnimationFrame,
-     yang berhenti total ketika tab disembunyikan dan membuat penilaian menggantung. */
+  /* Irisan waktu berbasis setTimeout — requestAnimationFrame berhenti total
+     ketika tab disembunyikan dan membuat penilaian menggantung. */
   return new Promise(resolve => {
-    const out = [];
-    let i = 0;
+    const out = []; let i = 0;
     const step = () => {
       const t0 = performance.now();
       while (i < rows.length && performance.now() - t0 < 12) {
@@ -301,7 +378,6 @@ function scoreCohort(rows, onProgress) {
     step();
   });
 }
-
 async function loadCohortRows() {
   if (cohortRaw) return cohortRaw;
   const r = await fetch('data/kohort_contoh.json');
@@ -311,189 +387,241 @@ async function loadCohortRows() {
   cohortRaw = d.rows.map(row => pos.map(p => row[p]));
   return cohortRaw;
 }
-
 async function useCohort(rows, label) {
   const prog = $('#k-prog'), bar = prog.firstElementChild;
   prog.hidden = false; bar.style.width = '0%';
-  const st = $('#k-status');
-  st.textContent = ''; st.classList.remove('err');
+  const st = $('#k-status'); st.textContent = ''; st.classList.remove('err');
   COHORT = await scoreCohort(rows, f => { bar.style.width = (f * 100).toFixed(0) + '%'; });
   prog.hidden = true;
-  $('#k-empty').hidden = true;
-  $('#k-body').hidden = false;
-  $('#a-export').disabled = false;
   $('#k-hint').textContent = label;
+  ['k', 'p', 't', 's'].forEach(id => {
+    const e = $('#' + id + '-empty'), b = $('#' + id + '-body');
+    if (e) e.hidden = true; if (b) b.hidden = false;
+  });
+  $('#a-export').disabled = false;
   renderCohort();
+}
+function fail(msg) {
+  $('#k-prog').hidden = true;
+  $('#k-empty').hidden = false; $('#k-body').hidden = true;
+  const s = $('#k-status'); s.textContent = msg; s.classList.add('err');
+  go('kohort');
 }
 
 function renderCohort() {
-  const t = M.thresholds, n = COHORT.length;
-  const cnt = [0, 0, 0, 0];
+  const t = TH(), n = COHORT.length, cnt = [0, 0, 0, 0];
   let sum = 0;
   for (const o of COHORT) { cnt[klas(o.E, t) - 1]++; sum += o.E; }
 
-  const comp = $('#comp'), key = $('#comp-key');
-  comp.innerHTML = ''; key.innerHTML = '';
-  cnt.forEach((c, i) => {
-    const seg = document.createElement('i');
-    seg.style.background = ORD[i];
-    seg.style.width = (c / n * 100) + '%';
-    comp.append(seg);
-    const s = document.createElement('span');
-    s.innerHTML = '<i style="width:8px;height:8px;border-radius:2px;display:inline-block;background:' + ORD[i] + '"></i> ' +
-                  (i + 1) + ' · ' + NAMA[i] + ' <b>' + c + '</b>';
-    key.append(s);
-  });
-  $('#k-n').textContent = n.toLocaleString('id-ID');
+  paintComposition('comp', cnt);
+  paintComposition('comp2', cnt);
+  $('#k-n').textContent = idn(n);
   $('#k-mean').textContent = fmt(sum / n);
   $('#k-risk').textContent = pct((cnt[2] + cnt[3]) / n);
 
-  buildHist();
-  renderLab();
+  const srt = COHORT.map(o => o.E).sort((a, b) => a - b);
+  const qq = f => srt[Math.min(srt.length - 1, Math.floor(f * (srt.length - 1)))];
+  const q1 = qq(0.25), q2 = qq(0.5), q3 = qq(0.75);
+  if ($('#q-1')) {
+    $('#q-1').textContent = fmt(q1); $('#q-2').textContent = fmt(q2);
+    $('#q-3').textContent = fmt(q3); $('#q-w').textContent = fmt(q3 - q1);
+    $('#q-txt').textContent = 'Separuh kohort berada di antara ' + fmt(q1) + ' dan ' + fmt(q3) +
+      '. Massa terbesar menumpuk di sekitar t₁, tepat di batas antara “Sangat puas” dan “Puas” — ' +
+      'di situlah klasifikasi paling ambigu, dan di situlah sebagian besar penalti metrik terjadi.';
+  }
+  buildHist('hist', 'tip', false);
+  buildHist('hist2', 'tip2', true);
+  renderDial();
   renderTable();
+  buildScrub();
+  renderKohortCounts();
 }
 
-/* ------------------------------------------------------------ histogram -- */
-const HW = 960, HH = 300, HL = 46, HR = 22, HT = 16, HB = 44, HX0 = 1, HX1 = 3;
-const hx = v => HL + (Math.min(HX1, Math.max(HX0, v)) - HX0) / (HX1 - HX0) * (HW - HL - HR);
-const hxInv = px => HX0 + (px - HL) / (HW - HL - HR) * (HX1 - HX0);
+/* ------------------------------------------------------------- histogram -- */
+const HW = 960, HH = 300, HL = 46, HR = 22, HT = 18, HB = 44, X0 = 1, X1 = 3;
+const hx = v => HL + (Math.min(X1, Math.max(X0, v)) - X0) / (X1 - X0) * (HW - HL - HR);
+const hxInv = px => X0 + (px - HL) / (HW - HL - HR) * (X1 - X0);
 
-function buildHist() {
-  const root = $('#hist');
+function buildHist(rootId, tipId, drag) {
+  const root = $('#' + rootId);
+  if (!root) return;
   root.innerHTML = '';
+  const pfx = rootId.toUpperCase();
+  const g = defs(root, pfx);
   const NB = 56, w = (HW - HL - HR) / NB, y0 = HH - HB;
-  histBins = new Array(NB).fill(0);
+  const bins = new Array(NB).fill(0);
   for (const o of COHORT) {
-    const b = Math.min(NB - 1, Math.max(0, Math.floor((o.E - HX0) / (HX1 - HX0) * NB)));
-    histBins[b]++;
+    bins[Math.min(NB - 1, Math.max(0, Math.floor((o.E - X0) / (X1 - X0) * NB)))]++;
   }
-  const mx = Math.max.apply(null, histBins) || 1;
+  const mx = Math.max(...bins) || 1;
   const hy = c => y0 - c / mx * (y0 - HT);
 
-  for (let g = 0; g <= 3; g++) {
-    const y = HT + g / 3 * (y0 - HT);
+  for (let i = 0; i <= 3; i++) {
+    const y = HT + i / 3 * (y0 - HT);
     svg('line', { x1: HL, y1: y, x2: HW - HR, y2: y, stroke: 'var(--line)', 'stroke-width': 1 }, root);
-    svg('text', { x: HL - 9, y: y + 4, 'text-anchor': 'end', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root)
-      .textContent = Math.round(mx * (1 - g / 3));
+    svg('text', { x: HL - 10, y: y + 4, 'text-anchor': 'end', 'font-size': 10.5,
+      'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = Math.round(mx * (1 - i / 3));
   }
-
-  const barEls = [];
-  histBins.forEach((c, i) => {
-    barEls.push(svg('rect', {
-      x: HL + i * w, y: hy(c), width: Math.max(1, w - 1.5), height: y0 - hy(c), rx: 1.5, fill: 'var(--s1)'
-    }, root));
-  });
+  const barEls = bins.map((c, i) => svg('rect', {
+    x: HL + i * w, y: hy(c), width: Math.max(1, w - 1.5), height: y0 - hy(c), rx: 2.5, fill: g(0)
+  }, root));
 
   svg('line', { x1: HL, y1: y0, x2: HW - HR, y2: y0, stroke: 'var(--line-2)', 'stroke-width': 1 }, root);
   for (let v = 1; v <= 3.0001; v += 0.25) {
-    svg('text', { x: hx(v), y: y0 + 18, 'text-anchor': 'middle', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root)
-      .textContent = fmt(v, 2);
+    svg('text', { x: hx(v), y: y0 + 19, 'text-anchor': 'middle', 'font-size': 10.5,
+      'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = fmt(v, 2);
   }
   svg('text', { x: (HL + HW - HR) / 2, y: HH - 8, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--ink-3)' }, root)
     .textContent = 'E[y] — nilai harapan pada skala kepuasan';
 
   M.thresholds.slice(0, 2).forEach((v, i) => {
-    svg('line', { x1: hx(v), y1: HT, x2: hx(v), y2: y0, stroke: 'var(--ink-3)', 'stroke-width': 1, 'stroke-dasharray': '3 3' }, root);
-    svg('text', { x: hx(v) + 5, y: HT + 11, 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root)
+    svg('line', { x1: hx(v), y1: HT, x2: hx(v), y2: y0, stroke: 'var(--ink-3)', 'stroke-width': 1, 'stroke-dasharray': '3 4' }, root);
+    svg('text', { x: hx(v) + 6, y: HT + 11, 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root)
       .textContent = 't' + (i + 1);
   });
 
-  /* t₃ — diseret langsung di grafik */
-  const handle = svg('g', {
-    class: 'handle', tabindex: 0, role: 'slider', 'aria-label': 'Ambang penapisan t3',
-    'aria-valuemin': HX0, 'aria-valuemax': HX1
-  }, root);
-  svg('rect', { class: 'hit', x: -15, y: HT - 10, width: 30, height: y0 - HT + 20 }, handle);
-  svg('line', { x1: 0, y1: HT, x2: 0, y2: y0, stroke: 'var(--s4)', 'stroke-width': 2 }, handle);
-  svg('rect', { class: 'cap', x: -14, y: HT - 7, width: 28, height: 16, rx: 4, fill: 'var(--s4)' }, handle);
-  svg('text', { x: 0, y: HT + 5, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700,
-    'font-family': 'var(--mono)', fill: '#fff' }, handle).textContent = 't3';
+  let handle = null;
+  if (drag) {
+    handle = svg('g', { class: 'handle', tabindex: 0, role: 'slider',
+      'aria-label': 'Ambang penapisan t3', 'aria-valuemin': X0, 'aria-valuemax': X1 }, root);
+    svg('rect', { class: 'hit', x: -16, y: HT - 12, width: 32, height: y0 - HT + 24 }, handle);
+    svg('line', { x1: 0, y1: HT, x2: 0, y2: y0, stroke: 'var(--s4)', 'stroke-width': 2.2 }, handle);
+    svg('rect', { class: 'cap', x: -15, y: HT - 9, width: 30, height: 18, rx: 6, fill: g(3) }, handle);
+    svg('text', { x: 0, y: HT + 4, 'text-anchor': 'middle', 'font-size': 10.5, 'font-weight': 700,
+      'font-family': 'var(--mono)', fill: '#fff' }, handle).textContent = 't3';
+  } else {
+    const gl = svg('g', {}, root);
+    svg('line', { x1: 0, y1: HT, x2: 0, y2: y0, stroke: 'var(--s4)', 'stroke-width': 2 }, gl);
+    svg('text', { x: 6, y: HT + 11, 'font-size': 10.5, 'font-weight': 700, 'font-family': 'var(--mono)',
+      fill: 'var(--s4)' }, gl).textContent = 't3';
+    handle = gl;
+  }
 
-  histRefs = { barEls, handle, y0, w, mx };
-  attachHistEvents(root);
-  paintHist();
+  H[rootId] = { root, bins, barEls, handle, y0, w, mx, grad: g, tip: $('#' + tipId) };
+  attachHist(rootId, drag);
+  paintHist(rootId);
 }
-
-function paintHist() {
+function paintHist(rootId) {
+  const s = H[rootId];
+  if (!s) return;
   const t = M.thresholds;
-  histRefs.barEls.forEach((r, i) => {
-    const v = HX0 + (i + 0.5) / histBins.length * (HX1 - HX0);
-    const c = v > T3 ? 3 : v > t[1] ? 2 : v > t[0] ? 1 : 0;
-    r.setAttribute('fill', ORD[c]);
+  s.barEls.forEach((r, i) => {
+    const v = X0 + (i + 0.5) / s.bins.length * (X1 - X0);
+    r.setAttribute('fill', s.grad(v > T3 ? 3 : v > t[1] ? 2 : v > t[0] ? 1 : 0));
   });
-  histRefs.handle.setAttribute('transform', 'translate(' + hx(T3).toFixed(2) + ',0)');
-  histRefs.handle.setAttribute('aria-valuenow', T3.toFixed(2));
-  histRefs.handle.setAttribute('aria-valuetext', fmt(T3, 2));
+  s.handle.setAttribute('transform', 'translate(' + hx(T3).toFixed(2) + ',0)');
+  if (s.handle.setAttribute && s.handle.tagName) {
+    s.handle.setAttribute('aria-valuenow', T3.toFixed(2));
+    s.handle.setAttribute('aria-valuetext', fmt(T3, 2));
+  }
 }
-
-function attachHistEvents(root) {
-  const tip = $('#tip'), wrap = $('.chart-wrap'), h = histRefs.handle;
-  const toSvg = ev => {
-    const b = root.getBoundingClientRect();
-    return (ev.clientX - b.left) / b.width * HW;
-  };
-  const setT3 = v => {
-    T3 = Math.min(HX1, Math.max(HX0, v));
-    store.set('t3', T3);
-    paintHist(); renderLab();
-  };
-
-  h.addEventListener('pointerdown', ev => {
-    ev.preventDefault();
-    h.setPointerCapture(ev.pointerId);
-    h.dataset.drag = '1';
-    tip.classList.remove('on');
+function setT3(v) {
+  T3 = Math.min(X1, Math.max(X0, v));
+  store.set('t3', T3);
+  paintHist('hist'); paintHist('hist2');
+  renderDial(); renderTable(); render(); renderKohortCounts();
+  const tx = $('#t-txt'); void tx;
+}
+function counts() {
+  const t = TH(), cnt = [0, 0, 0, 0];
+  for (const o of COHORT) cnt[klas(o.E, t) - 1]++;
+  return cnt;
+}
+function paintComposition(id, cnt) {
+  const comp = $('#' + id), key = $('#' + id + '-key');
+  if (!comp) return;
+  const n = COHORT.length;
+  if (comp.children.length !== 4) {
+    comp.innerHTML = ''; key.innerHTML = '';
+    cnt.forEach((c, i) => {
+      const seg = document.createElement('i'); seg.style.background = CSSG[i]; comp.append(seg);
+      const s = document.createElement('span');
+      s.innerHTML = '<i style="background:' + CSSG[i] + '"></i> ' + (i + 1) + ' · ' + NAMA[i] + ' <b></b>';
+      key.append(s);
+    });
+  }
+  cnt.forEach((c, i) => {
+    comp.children[i].style.width = (c / n * 100) + '%';
+    key.children[i].querySelector('b').textContent = idn(c);
   });
-  h.addEventListener('pointermove', ev => { if (h.dataset.drag) setT3(hxInv(toSvg(ev))); });
-  const stop = ev => { delete h.dataset.drag; try { h.releasePointerCapture(ev.pointerId); } catch (e) {} };
-  h.addEventListener('pointerup', stop);
-  h.addEventListener('pointercancel', stop);
-  h.addEventListener('keydown', ev => {
-    const s = ev.shiftKey ? 0.1 : 0.01;
-    if (ev.key === 'ArrowLeft' || ev.key === 'ArrowDown') { setT3(T3 - s); ev.preventDefault(); }
-    else if (ev.key === 'ArrowRight' || ev.key === 'ArrowUp') { setT3(T3 + s); ev.preventDefault(); }
-    else if (ev.key === 'Home') { setT3(HX0); ev.preventDefault(); }
-    else if (ev.key === 'End') { setT3(HX1); ev.preventDefault(); }
-  });
+}
+function renderKohortCounts() {
+  if (!COHORT) return;
+  const cnt = counts(), n = COHORT.length;
+  paintComposition('comp', cnt);
+  paintComposition('comp2', cnt);
+  const risk = $('#k-risk'); if (risk) risk.textContent = pct((cnt[2] + cnt[3]) / n);
+  const tx = $('#t-txt');
+  if (tx) {
+    const d = T3 - T3_OPT;
+    tx.textContent = 'Pada ambang ' + fmt(T3, 2) + ', kohort ini terbagi menjadi ' +
+      cnt.map((c, i) => idn(c) + ' di kelas ' + (i + 1)).join(', ') + '. ' +
+      (Math.abs(d) < 0.005 ? 'Ini ambang yang optimal untuk QWK.'
+        : 'Menggeser t₃ hanya memindahkan orang antara kelas 3 dan kelas 4 — jumlah yang perlu ditindaklanjuti tetap, yang berubah adalah tingkat urgensinya.');
+  }
+}
+function attachHist(rootId, drag) {
+  const s = H[rootId], root = s.root, tip = s.tip;
+  const wrap = root.closest('.chart-wrap');
+  const toSvg = ev => { const b = root.getBoundingClientRect(); return (ev.clientX - b.left) / b.width * HW; };
 
+  if (drag && s.handle.addEventListener) {
+    const h = s.handle;
+    h.addEventListener('pointerdown', ev => {
+      ev.preventDefault(); h.setPointerCapture(ev.pointerId); h.dataset.drag = '1';
+      if (tip) tip.classList.remove('on');
+    });
+    h.addEventListener('pointermove', ev => { if (h.dataset.drag) setT3(hxInv(toSvg(ev))); });
+    const stop = ev => { delete h.dataset.drag; try { h.releasePointerCapture(ev.pointerId); } catch (e) {} };
+    h.addEventListener('pointerup', stop); h.addEventListener('pointercancel', stop);
+    h.addEventListener('keydown', ev => {
+      const st = ev.shiftKey ? 0.1 : 0.01;
+      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowDown') { setT3(T3 - st); ev.preventDefault(); }
+      else if (ev.key === 'ArrowRight' || ev.key === 'ArrowUp') { setT3(T3 + st); ev.preventDefault(); }
+      else if (ev.key === 'Home') { setT3(X0); ev.preventDefault(); }
+      else if (ev.key === 'End') { setT3(X1); ev.preventDefault(); }
+    });
+  }
+  if (!tip || !wrap) return;
   root.addEventListener('pointermove', ev => {
-    if (h.dataset.drag) return;
-    const px = toSvg(ev), i = Math.floor((px - HL) / histRefs.w);
-    if (i < 0 || i >= histBins.length || !histBins[i]) { tip.classList.remove('on'); return; }
-    const a = HX0 + i / histBins.length * (HX1 - HX0);
-    const b = HX0 + (i + 1) / histBins.length * (HX1 - HX0);
-    tip.innerHTML = '<span class="num">' + histBins[i] + '</span> responden &middot; E[y] ' + fmt(a, 2) + '–' + fmt(b, 2);
-    const rect = root.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
-    tip.style.left = (rect.left - wr.left + (HL + (i + 0.5) * histRefs.w) / HW * rect.width) + 'px';
-    tip.style.top = (rect.top - wr.top + (histRefs.y0 - histBins[i] / histRefs.mx * (histRefs.y0 - HT)) / HH * rect.height) + 'px';
+    if (s.handle.dataset && s.handle.dataset.drag) return;
+    const i = Math.floor((toSvg(ev) - HL) / s.w);
+    if (i < 0 || i >= s.bins.length || !s.bins[i]) { tip.classList.remove('on'); return; }
+    const a = X0 + i / s.bins.length * (X1 - X0), b = X0 + (i + 1) / s.bins.length * (X1 - X0);
+    tip.innerHTML = '<span class="n">' + idn(s.bins[i]) + '</span> responden &middot; E[y] ' + fmt(a, 2) + '–' + fmt(b, 2);
+    const rc = root.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+    tip.style.left = (rc.left - wr.left + (HL + (i + 0.5) * s.w) / HW * rc.width) + 'px';
+    tip.style.top = (rc.top - wr.top + (s.y0 - s.bins[i] / s.mx * (s.y0 - HT)) / HH * rc.height) + 'px';
     tip.classList.add('on');
   });
   root.addEventListener('pointerleave', () => tip.classList.remove('on'));
 }
 
-function renderLab() {
+/* ---------------------------------------------------------------- ambang -- */
+function renderDial() {
+  if (!COHORT) return;
+  const n = COHORT.length;
   const opt = COHORT.filter(o => o.E > T3_OPT).length;
   const now = COHORT.filter(o => o.E > T3).length;
   const d = T3 - T3_OPT;
   $('#l-t3').textContent = fmt(T3, 2);
+  $('#l-meter').style.width = Math.min(100, now / n * 100 * 4).toFixed(1) + '%';
+  $('#l-flag').textContent = idn(now) + ' dari ' + idn(n) + ' ditandai';
   $('#l-delta').textContent = Math.abs(d) < 0.005 ? 'pada optimal QWK'
     : (d < 0 ? 'diturunkan ' : 'dinaikkan ') + fmt(Math.abs(d), 2);
-  $('#l-flag').textContent = now.toLocaleString('id-ID');
-  const diff = $('#l-diff');
-  diff.textContent = (now - opt >= 0 ? '+' : '−') + Math.abs(now - opt);
-  diff.style.color = now === opt ? '' : 'var(--s4)';
+  $('#l-extra').textContent = (now - opt >= 0 ? '+' : '−') + idn(Math.abs(now - opt));
+  $('#l-load').textContent = Math.round(now / n * 1000);
   $('#a-reset-t3').disabled = Math.abs(d) < 0.005;
 }
 
-/* --------------------------------------------------------------- tabel --- */
+/* ----------------------------------------------------------------- tabel -- */
 const COLS = [
   { k: 'rank', l: '#', get: (o, i) => i + 1, num: true, sort: false },
   { k: 'E', l: 'E[y]', get: o => fmt(o.E), num: true },
   { k: 'kelas', l: 'Kelas', get: o => {
-      const k = klas(o.E, M.thresholds);
-      return '<span class="pip" style="background:' + ORD[k - 1] + ';color:' +
-        (k === 2 || k === 3 ? 'var(--ink)' : '#fff') + '">' + k + '</span>';
-    } },
+      const k = klas(o.E, TH());
+      return '<span class="pip" style="background:' + CSSG[k - 1] + ';color:' +
+        ((k === 2 || k === 3) ? 'var(--ink)' : '#fff') + '">' + k + '</span>'; } },
   { k: 'general_health_status', l: 'Kesehatan diri' },
   { k: 'depression_frequency', l: 'Depresi' },
   { k: 'food_security_4cat', l: 'Pangan' },
@@ -504,55 +632,78 @@ function cellText(o, k) {
   const v = o.x[IDX[k]];
   if (v === null || v === undefined || Number.isNaN(v)) return '—';
   const f = byKey[k];
-  if (f && f.o) {
-    const m = f.o.find(c => c[0] === Math.round(v));
-    return m ? m[1] : String(v);
-  }
+  if (f && f.o) { const m = f.o.find(c => c[0] === Math.round(v)); return m ? m[1] : String(v); }
   return k === 'age' ? String(Math.round(v)) : fmt(v, 2);
 }
-function sortVal(o, k) {
-  if (k === 'E' || k === 'kelas') return o.E;
-  const v = o.x[IDX[k]];
-  return (v === null || v === undefined || Number.isNaN(v)) ? -Infinity : v;
-}
+const sortVal = (o, k) => (k === 'E' || k === 'kelas') ? o.E
+  : (o.x[IDX[k]] === null || o.x[IDX[k]] === undefined || Number.isNaN(o.x[IDX[k]])) ? -Infinity : o.x[IDX[k]];
+
 function renderTable() {
+  if (!COHORT) return;
   const thead = $('#tbl thead'), tbody = $('#tbl tbody');
   thead.innerHTML = '<tr>' + COLS.map(c => {
     if (c.sort === false) return '<th>' + c.l + '</th>';
     const on = SORT.key === c.k;
     return '<th' + (on ? ' aria-sort="' + (SORT.dir < 0 ? 'descending' : 'ascending') + '"' : '') + '>' +
-      '<button type="button" data-k="' + c.k + '">' + c.l +
-      '<span class="ar">' + (on && SORT.dir > 0 ? '↑' : '↓') + '</span></button></th>';
+      '<button type="button" data-k="' + c.k + '">' + c.l + '<span class="ar">' + (on && SORT.dir > 0 ? '↑' : '↓') + '</span></button></th>';
   }).join('') + '</tr>';
   $$('#tbl thead button').forEach(b => b.addEventListener('click', () => {
-    const k = b.dataset.k;
-    SORT = { key: k, dir: SORT.key === k ? -SORT.dir : -1 };
-    renderTable();
+    const k = b.dataset.k; SORT = { key: k, dir: SORT.key === k ? -SORT.dir : -1 }; renderTable();
   }));
 
   const rows = COHORT.slice().sort((a, b) => (sortVal(a, SORT.key) - sortVal(b, SORT.key)) * SORT.dir).slice(0, 30);
   tbody.innerHTML = rows.map((o, i) => '<tr tabindex="0">' + COLS.map(c =>
-    '<td class="' + (c.num ? 'n' : '') + '">' + (c.get ? c.get(o, i) : cellText(o, c.k)) + '</td>'
-  ).join('') + '</tr>').join('');
+    '<td class="' + (c.num ? 'n' : '') + '">' + (c.get ? c.get(o, i) : cellText(o, c.k)) + '</td>').join('') + '</tr>').join('');
   Array.prototype.forEach.call(tbody.rows, (tr, i) => {
     const open = () => { writeX(rows[i].x); render(); go('skrining'); };
     tr.addEventListener('click', open);
-    tr.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); }
-    });
+    tr.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
   });
 }
 
-/* ----------------------------------------------------------------- CSV --- */
+/* ------------------------------------------------------- penelusur metode -- */
+function buildScrub() {
+  if (!COHORT) return;
+  const r = $('#s-range');
+  r.max = COHORT.length - 1;
+  r.value = Math.round(COHORT.length * 0.12);
+  r.oninput = paintScrub;
+  paintScrub();
+}
+function paintScrub() {
+  const i = +$('#s-range').value, o = COHORT[i];
+  const t = TH(), kt = klas(o.E, t), ka = argmaxK(o.p);
+  $('#s-idx').textContent = 'peringkat ' + idn(i + 1) + ' dari ' + idn(COHORT.length);
+  $('#s-ey').textContent = 'E[y] ' + fmt(o.E);
+  const set = (id, k) => {
+    const e = $(id); e.textContent = k;
+    e.style.background = CSSG[k - 1];
+    e.style.color = (k === 2 || k === 3) ? 'var(--ink)' : '#fff';
+  };
+  set('#s-am', ka); set('#s-th', kt);
+  $('#s-am-t').textContent = NAMA[ka - 1];
+  $('#s-th-t').textContent = NAMA[kt - 1];
+
+  const beda = COHORT.filter(c => argmaxK(c.p) !== klas(c.E, t)).length;
+  const box = $('#s-agree');
+  box.classList.toggle('diff', ka !== kt);
+  box.innerHTML = (ka !== kt
+    ? 'Keduanya <b>berbeda</b> untuk responden ini: <code>argmax</code> memilih kelas ' + ka +
+      ', aturan ordinal memilih kelas ' + kt + '. '
+    : 'Keduanya sepakat untuk responden ini. ') +
+    'Pada seluruh kohort, keduanya berbeda pada <b>' + idn(beda) + ' dari ' + idn(COHORT.length) +
+    ' responden</b> (' + pct(beda / COHORT.length) + '). Perbedaan itulah yang menyumbang ' +
+    '+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5) + ' QWK pada model ini.';
+}
+
+/* ------------------------------------------------------------------- CSV -- */
 function parseCSV(text) {
   const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
   if (lines.length < 2) throw new Error('Berkas kosong atau hanya berisi baris header.');
   const head = lines[0].split(',').map(s => s.trim().replace(/^"|"$/g, ''));
   const pos = M.features.map(k => head.indexOf(k));
   const miss = M.features.filter((k, i) => pos[i] < 0);
-  if (miss.length) {
-    throw new Error(miss.length + ' kolom tidak ditemukan: ' + miss.slice(0, 3).join(', ') + (miss.length > 3 ? ', …' : '') + '.');
-  }
+  if (miss.length) throw new Error(miss.length + ' kolom tidak ditemukan: ' + miss.slice(0, 3).join(', ') + (miss.length > 3 ? ', …' : '') + '.');
   const rows = lines.slice(1).map(l => {
     const c = l.split(',');
     return pos.map(p => { const v = parseFloat(c[p]); return Number.isNaN(v) ? null : v; });
@@ -567,62 +718,61 @@ function handleFile(file) {
   rd.onload = async () => {
     try {
       const rows = parseCSV(String(rd.result));
-      await useCohort(rows, file.name + ' · ' + rows.length.toLocaleString('id-ID') + ' baris');
+      await useCohort(rows, file.name + ' · ' + idn(rows.length) + ' baris');
     } catch (e) { fail(e.message); }
   };
   rd.readAsText(file);
 }
-function fail(msg) {
-  $('#k-prog').hidden = true;
-  $('#k-empty').hidden = false;
-  $('#k-body').hidden = true;
-  const s = $('#k-status');
-  s.textContent = msg;
-  s.classList.add('err');
-  go('kohort');
-}
 function exportCSV() {
-  const head = ['peringkat', 'E_y', 'kelas_prediksi', 'p1', 'p2', 'p3', 'p4'].concat(M.features);
-  const body = COHORT.map((o, i) => [
-    i + 1, o.E.toFixed(5), klas(o.E, M.thresholds)
-  ].concat(o.p.map(v => v.toFixed(5)))
-   .concat(o.x.map(v => (v === null || v === undefined || Number.isNaN(v)) ? '' : v)).join(','));
+  const head = ['peringkat', 'E_y', 'kelas_prediksi', 'ambang_t3_dipakai', 'p1', 'p2', 'p3', 'p4'].concat(M.features);
+  const body = COHORT.map((o, i) => [i + 1, o.E.toFixed(5), klas(o.E, TH()), T3.toFixed(4)]
+    .concat(o.p.map(v => v.toFixed(5)))
+    .concat(o.x.map(v => (v === null || v === undefined || Number.isNaN(v)) ? '' : v)).join(','));
   const blob = new Blob(['﻿' + [head.join(',')].concat(body).join('\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'lifescope_kohort_dinilai.csv';
+  a.download = 'lifescope_prioritas.csv';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-/* ---------------------------------------------------------------- rute --- */
-const VIEWS = ['skrining', 'kohort', 'model'];
+/* ------------------------------------------------------------------ rute -- */
 function go(v) {
-  if (VIEWS.indexOf(v) < 0) v = 'skrining';
+  if (VIEWS.indexOf(v) < 0) v = 'ikhtisar';
   $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
   $$('.nav button').forEach(b => {
-    if (b.dataset.view === v) b.setAttribute('aria-current', 'page');
-    else b.removeAttribute('aria-current');
+    if (b.dataset.view === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   if (location.hash.slice(1) !== v) history.replaceState(null, '', '#' + v);
   store.set('view', v);
+  const m = document.querySelector('main');
+  if (m) m.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+}
+function buildNav() {
+  const nav = $('#nav');
+  for (const item of NAV) {
+    if (item.g) { const d = document.createElement('div'); d.className = 'nav-grp'; d.textContent = item.g; nav.append(d); continue; }
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.view = item.v;
+    b.innerHTML = icon(item.v) + '<span class="lbl">' + item.l + '</span>' +
+      '<span class="key">' + (VIEWS.indexOf(item.v) + 1) + '</span>';
+    b.addEventListener('click', () => go(item.v));
+    nav.append(b);
+  }
 }
 
-/* ---------------------------------------------------------------- muat --- */
+/* ------------------------------------------------------------------ muat -- */
 (async function init() {
   try {
     const mr = await fetch('data/model_lifescope.json');
-    if (!mr.ok) throw new Error('gagal memuat model');
+    if (!mr.ok) throw new Error('gagal');
     M = await mr.json();
-    try {
-      const cr = await fetch('data/konteks_lifescope.json');
-      if (cr.ok) CTX = await cr.json();
-    } catch (e) { CTX = null; }
+    try { const cr = await fetch('data/konteks_lifescope.json'); if (cr.ok) CTX = await cr.json(); } catch (e) { CTX = null; }
   } catch (e) {
     document.body.insertAdjacentHTML('afterbegin',
-      '<div style="padding:24px;color:#ab3724;font-size:14px;font-family:system-ui">Gagal memuat model. ' +
-      'Halaman ini perlu dijalankan lewat server statis (misalnya <code>python -m http.server</code>), ' +
-      'bukan dibuka langsung sebagai berkas.</div>');
+      '<div style="padding:24px;color:#b33a22;font-family:system-ui">Gagal memuat model. Halaman ini perlu ' +
+      'dijalankan lewat server statis (misalnya <code>python -m http.server</code>), bukan dibuka sebagai berkas.</div>');
     return;
   }
 
@@ -630,18 +780,49 @@ function go(v) {
   MEDIAN = M.features.map(k => M.stats[k].median);
   T3_OPT = M.thresholds[2];
   T3 = store.get('t3', T3_OPT);
-  if (!(typeof T3 === 'number' && T3 >= HX0 && T3 <= HX1)) T3 = T3_OPT;
+  if (!(typeof T3 === 'number' && T3 >= X0 && T3 <= X1)) T3 = T3_OPT;
 
-  $('#m-trees').textContent = M.meta.n_pohon.toLocaleString('id-ID');
+  buildNav();
+  $('#m-trees').textContent = idn(M.meta.n_pohon);
   $('#m-feats').textContent = M.meta.n_fitur;
   $('#m-qwk').textContent = fmt(M.meta.qwk_oof_ambang, 5);
   $('#m-seed').textContent = M.meta.seed;
 
+  $('#legend').innerHTML = NAMA.map((t, i) =>
+    '<span><i style="background:' + CSSG[i] + '"></i> ' + (i + 1) + ' · ' + t + '</span>').join('');
+
+  $('#thesis').innerHTML = [
+    ['+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5), 'Aturan keputusan, bukan model',
+      'Memakai nilai harapan pada skala ordinal alih-alih memilih kelas dengan probabilitas tertinggi. Model, fitur, dan seed persis sama.'],
+    ['50,4%', 'Akurasi yang bernilai nol',
+      'Akurasi yang didapat dengan menebak kelas mayoritas untuk semua orang. QWK-nya persis 0,00000 — metrik ini tidak memberi imbalan pada tebakan aman.'],
+    ['4.452', 'Orang yang perlu ditemukan',
+      'Responden di dua kelas terbawah, dari 95.609 baris data latih. Hanya 4,7% — dan justru di sanalah hampir seluruh penalti berada.']
+  ].map(r => '<div class="th"><div class="k">' + r[0] + '</div><div class="t">' + r[1] + '</div><div class="d">' + r[2] + '</div></div>').join('');
+
+  $('#paths').innerHTML = [
+    ['skrining', 'Skrining satu orang', 'Isi 17 pertanyaan, lihat posisinya pada skala beserta faktor yang mendorongnya.', 0],
+    ['kohort', 'Nilai satu kohort', 'Muat contoh atau unggah CSV Anda sendiri. Semua perhitungan terjadi di peramban.', 1],
+    ['prioritas', 'Susun daftar prioritas', 'Urutkan berdasarkan E[y], buka satu baris untuk memeriksanya, lalu ekspor CSV.', 2],
+    ['ambang', 'Kalibrasi ambang', 'Geser t₃ dan lihat berapa orang tambahan yang tertangkap untuk tiap penurunan.', 3]
+  ].map(r => '<button type="button" class="path" data-go="' + r[0] + '">' +
+      '<span class="ic" style="background:' + CSSG[r[3]] + '">' + icon(r[0]) + '</span>' +
+      '<b>' + r[1] + '</b><span>' + r[2] + '</span><span class="go">Buka →</span></button>').join('');
+
+  $('#steps').innerHTML = [
+    ['Kuesioner', '17 variabel yang dapat ditanyakan dalam wawancara beberapa menit. Non-respons diteruskan apa adanya — tidak diimputasi.'],
+    ['Ansambel pohon', idn(M.meta.n_pohon) + ' pohon keputusan menghasilkan empat probabilitas: p₁ sampai p₄, satu untuk tiap tingkat kepuasan.'],
+    ['Nilai harapan', 'E[y] = Σ pₖ·k menggabungkan keempatnya menjadi satu titik pada skala kontinu. Inilah langkah yang paling menentukan skor — argmax membuang informasi jaraknya.'],
+    ['Tiga ambang batas', 'E[y] dipotong pada t₁, t₂, dan t₃ yang diestimasi dari out-of-fold data latih. Di lapangan, t₃ boleh digeser sesuai toleransi risiko.']
+  ].map((r, i) => '<div class="step"><span class="i" style="background:' + CSSG[i] + ';color:' +
+      ((i === 1 || i === 2) ? 'var(--ink)' : '#fff') + '">' + (i + 1) + '</span>' +
+      '<span><b>' + r[0] + '</b><span>' + r[1] + '</span></span></div>').join('');
+
   $('#spec').innerHTML = [
     ['Jenis', 'Ansambel pohon keputusan (LightGBM), diekspor ke JSON', 0],
-    ['Pohon', M.meta.n_pohon.toLocaleString('id-ID'), 1],
+    ['Pohon', idn(M.meta.n_pohon), 1],
     ['Variabel masukan', M.meta.n_fitur, 1],
-    ['Baris data latih', M.meta.n_train.toLocaleString('id-ID'), 1],
+    ['Baris data latih', idn(M.meta.n_train), 1],
     ['Aturan keputusan', 'E[y] = Σ pₖ·k, lalu tiga ambang batas', 0],
     ['Ambang batas', M.thresholds.map(t => fmt(t)).join('  ·  '), 1],
     ['Validasi', '5-fold stratified, out-of-fold', 0],
@@ -655,48 +836,36 @@ function go(v) {
     ['Sumbangan aturan keputusan', '+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5)]
   ].map(r => '<div><dt>' + r[0] + '</dt><dd class="n">' + r[1] + '</dd></div>').join('');
 
-  buildForm();
-  buildGauge();
-  writeX(MEDIAN.slice());
-  render();
+  buildForm(); buildGauge(); buildHeroGauge();
+  writeX(MEDIAN.slice()); render();
 
   $('#a-median').addEventListener('click', () => { writeX(MEDIAN.slice()); render(); });
   $('#a-acak').addEventListener('click', async () => {
-    try {
-      const rows = await loadCohortRows();
-      writeX(rows[Math.floor(Math.random() * rows.length)]);
-      render();
-    } catch (e) { /* berkas contoh tidak ada — panel ini tetap berfungsi */ }
+    try { const rows = await loadCohortRows(); writeX(rows[Math.floor(Math.random() * rows.length)]); render(); }
+    catch (e) { /* berkas contoh tidak ada — panel ini tetap berfungsi */ }
   });
   $('#a-kohort').addEventListener('click', async () => {
-    try {
-      const rows = await loadCohortRows();
-      await useCohort(rows, 'Kohort contoh · ' + rows.length.toLocaleString('id-ID') + ' responden');
-    } catch (e) { fail(e.message + ' Unggah CSV Anda sendiri untuk melanjutkan.'); }
+    try { const rows = await loadCohortRows(); await useCohort(rows, 'Kohort contoh · ' + idn(rows.length) + ' responden'); }
+    catch (e) { fail(e.message + ' Unggah CSV Anda sendiri untuk melanjutkan.'); }
   });
   $('#file').addEventListener('change', e => handleFile(e.target.files[0]));
   $('#file2').addEventListener('change', e => handleFile(e.target.files[0]));
   $('#a-export').addEventListener('click', exportCSV);
-  $('#a-reset-t3').addEventListener('click', () => {
-    T3 = T3_OPT; store.set('t3', T3); paintHist(); renderLab();
-  });
-  $$('.nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
+  $('#a-reset-t3').addEventListener('click', () => setT3(T3_OPT));
+  $$('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 
   addEventListener('keydown', ev => {
     if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
     const t = ev.target;
     if (t && t.tagName && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)) return;
-    const i = ['1', '2', '3'].indexOf(ev.key);
-    if (i >= 0) { go(VIEWS[i]); ev.preventDefault(); }
+    const i = VIEWS.indexOf(VIEWS[+ev.key - 1]);
+    if (+ev.key >= 1 && +ev.key <= VIEWS.length) { go(VIEWS[+ev.key - 1]); ev.preventDefault(); }
+    void i;
   });
   addEventListener('hashchange', () => go(location.hash.slice(1)));
+  go(location.hash.slice(1) || store.get('view', 'ikhtisar'));
 
-  go(location.hash.slice(1) || store.get('view', 'skrining'));
-
-  /* Tautan dalam untuk demo dan pitching:
-     ?kohort=contoh  — langsung memuat kohort contoh
-     ?responden=acak — langsung mengisi formulir dengan satu responden acak   */
   const q = new URLSearchParams(location.search);
-  if (q.get('kohort') === 'contoh') { go('kohort'); $('#a-kohort').click(); }
+  if (q.get('kohort') === 'contoh') { $('#a-kohort').click(); if (!location.hash) go('kohort'); }
   if (q.get('responden') === 'acak') { go('skrining'); $('#a-acak').click(); }
 })();

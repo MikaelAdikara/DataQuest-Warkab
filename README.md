@@ -22,32 +22,44 @@ Demo langsung: **https://mikaeladikara.github.io/DataQuest-Warkab/**
 | `model/train_surrogate.py` | Skrip yang memproduksi ulang model ringkas tersebut secara identik |
 | `docs/` | Notebook kompetisi lengkap, `requirements.txt`, dan pitch deck |
 
-## Apa yang bisa dilakukan
+## Tujuh panel, masing-masing satu pekerjaan
 
-**Skrining individu.** Tujuh belas pertanyaan yang muat dalam wawancara singkat. Keluarannya bukan
-label, melainkan posisi pada skala: E[y] ditampilkan sebagai jarum pada sumbu yang sama dengan
+**Ikhtisar** menjelaskan untuk apa alat ini dibuat: masalahnya, tiga temuan yang membentuknya,
+dan empat titik masuk.
+
+**Skrining** menilai satu responden dari 17 pertanyaan yang muat dalam wawancara singkat.
+Keluarannya bukan label melainkan posisi: E[y] tampil sebagai jarum pada sumbu yang sama dengan
 ketiga ambang batas produksi dan sebaran populasi latih. Ketika seorang responden jatuh 0,02 dari
-sebuah ambang, panel mengatakannya — informasi yang hilang begitu keluaran disederhanakan menjadi
-satu angka. Panel *faktor pendorong* menghitung seberapa jauh E[y] bergerak bila tiap variabel
-dikembalikan ke median populasi, sehingga pembacaan dapat dijelaskan per responden.
+sebuah ambang, panel mengatakannya. Panel *faktor pendorong* menghitung seberapa jauh E[y]
+bergerak bila tiap variabel dikembalikan ke median, sehingga pembacaan dapat dijelaskan.
 
-**Analisis kohort.** Muat kohort contoh atau unggah CSV sendiri; penilaian berjalan dalam irisan
-waktu sehingga antarmuka tidak membeku. Ambang penapisan t₃ dapat **diseret langsung pada
-histogram** (juga dapat digerakkan dengan panah papan tik), dan histogram berubah warna seketika
-mengikuti ambang baru — jumlah orang yang tertangkap ikut terhitung ulang. Tabel peringkat
-prioritas dapat diurutkan, dan mengklik satu baris membuka responden itu di panel skrining.
-Seluruh hasil dapat diekspor sebagai CSV.
+**Kohort** menilai sekumpulan orang sekaligus — muat contoh atau unggah CSV sendiri. Penilaian
+berjalan dalam irisan waktu sehingga antarmuka tidak membeku, lalu menampilkan komposisi kelas,
+sebaran E[y], dan pembacaan kuartilnya.
 
-**Model card.** Spesifikasi, perbandingan terbuka terhadap pipeline kompetisi, batas pemakaian,
+**Prioritas** adalah keluaran yang benar-benar dipakai perencana program: tabel terurut yang bisa
+disortir, diklik untuk membuka satu responden di panel skrining, dan diekspor sebagai CSV.
+
+**Ambang** adalah laboratorium kalibrasi. Garis t₃ diseret langsung pada histogram (atau digerakkan
+dengan panah papan tik); histogram, komposisi kelas, tabel prioritas, dan panel skrining ikut
+berubah seketika. Pilihan Anda tersimpan antar kunjungan.
+
+**Cara kerja** menjelaskan pipeline dalam empat langkah, lalu membiarkan Anda menelusuri kohort
+satu per satu untuk melihat di mana `argmax` dan aturan ordinal memilih kelas yang berbeda —
+pada kohort contoh, keduanya berbeda pada 126 dari 800 responden.
+
+**Model** memuat spesifikasi, perbandingan terbuka terhadap pipeline kompetisi, batas pemakaian,
 dan jalur reproduksi.
 
 ### Detail yang mungkin tidak langsung terlihat
 
 - Non-respons diteruskan apa adanya ke model — tidak diimputasi — persis seperti pipeline kompetisi.
-- Ambang penapisan pilihan Anda tersimpan antar kunjungan.
-- Pintasan papan tik `1` `2` `3` untuk berpindah panel; setiap panel punya tautan `#`-nya sendiri.
+- Pintasan papan tik `1`–`7` untuk berpindah panel; setiap panel punya tautan `#`-nya sendiri.
 - Tautan demo: `?kohort=contoh` langsung memuat kohort, `?responden=acak` langsung mengisi formulir.
-- Tidak ada skrip pihak ketiga, tidak ada permintaan jaringan setelah muat, tidak ada data yang keluar dari peramban.
+- Tidak ada skrip pihak ketiga, tidak ada permintaan jaringan setelah muat, tidak ada data yang
+  keluar dari peramban.
+- Mendukung `prefers-reduced-motion` dan `prefers-reduced-transparency`; seluruh warna teks
+  diverifikasi minimal 4,5:1 terhadap setiap permukaan.
 
 ## Hubungan dengan pipeline kompetisi
 

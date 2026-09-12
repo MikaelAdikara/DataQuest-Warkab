@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LifeScope — penapisan kepuasan hidup</title>
+<title>LifeScope — menemukan siapa yang perlu ditindaklanjuti</title>
 <meta name="description" content="Alat penapisan kepuasan hidup tingkat populasi. Memprediksi posisi pada skala ordinal, bukan satu dari empat label. Tim Warkab, DataQuest 5.0.">
 <meta name="color-scheme" content="light">
 <link rel="stylesheet" href="assets/styles.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='4' width='5' height='24' rx='1' fill='%232a7162'/%3E%3Crect x='9' y='11' width='5' height='17' rx='1' fill='%2379a593'/%3E%3Crect x='16' y='18' width='5' height='10' rx='1' fill='%23d9a054'/%3E%3Crect x='23' y='23' width='5' height='5' rx='1' fill='%23ab3724'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='4' width='5' height='24' rx='1.5' fill='%23277a66'/%3E%3Crect x='9' y='11' width='5' height='17' rx='1.5' fill='%237dab97'/%3E%3Crect x='16' y='18' width='5' height='10' rx='1.5' fill='%23dda257'/%3E%3Crect x='23' y='23' width='5' height='5' rx='1.5' fill='%23b33a22'/%3E%3C/svg%3E">
 </head>
 <body>
 <div class="app">
@@ -19,15 +19,9 @@
         <span class="glyph" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <b>LifeScope</b>
       </span>
-      <div class="rail-sub">Penapisan kepuasan hidup tingkat populasi</div>
+      <div class="rail-sub">Menemukan siapa yang perlu ditindaklanjuti, dari survei yang sudah ada</div>
     </div>
-
-    <nav class="nav" aria-label="Bagian utama">
-      <button type="button" data-view="skrining" aria-current="page">Skrining <span class="key">1</span></button>
-      <button type="button" data-view="kohort">Kohort <span class="key">2</span></button>
-      <button type="button" data-view="model">Model <span class="key">3</span></button>
-    </nav>
-
+    <nav class="nav" id="nav" aria-label="Bagian utama"></nav>
     <div class="rail-foot">
       <div class="live"><span class="dot" aria-hidden="true"></span> Berjalan lokal di peramban</div>
       <dl>
@@ -39,210 +33,369 @@
     </div>
   </aside>
 
-  <!-- ================================================================ main -->
   <main>
 
-    <!-- ------------------------------------------------------- skrining -->
-    <section id="v-skrining" class="view on" aria-labelledby="t-skrining">
-      <header class="bar">
-        <h1 id="t-skrining">Skrining individu</h1>
-        <span class="hint">Model menempatkan responden pada skala kontinu, lalu memotongnya dengan tiga ambang.</span>
-        <span class="spacer"></span>
-        <div class="bar-actions">
-          <button type="button" id="a-median" class="btn btn-quiet">Median populasi</button>
-          <button type="button" id="a-acak" class="btn">Responden acak</button>
-        </div>
-      </header>
+  <!-- ============================================================ IKHTISAR -->
+  <section id="v-ikhtisar" class="view on" aria-labelledby="t-ikhtisar">
+    <header class="bar">
+      <h1 id="t-ikhtisar">Ikhtisar</h1>
+      <span class="hint">Untuk apa alat ini dibuat, dan apa temuan yang mendasarinya.</span>
+      <span class="spacer"></span>
+      <div class="bar-actions">
+        <a class="btn" href="https://github.com/MikaelAdikara/DataQuest-Warkab" target="_blank" rel="noopener">Repositori</a>
+      </div>
+    </header>
 
-      <div class="pad split">
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Masukan</h2>
-            <span class="meta">17 variabel wawancara</span>
+    <div class="pad wide">
+      <div class="card card-2 hero">
+        <div>
+          <h1>Menandai siapa, bukan melaporkan berapa persen.</h1>
+          <p>Survei kesehatan sudah mengukur kepuasan hidup, lalu melaporkannya sebagai satu
+             persentase agregat dan berhenti di situ. Dari 95.609 responden, 4.452 orang berada di
+             dua kelas terbawah — dan tanpa model, satu-satunya cara menemukan mereka adalah
+             membaca ulang seluruh kuesioner, satu per satu. LifeScope mengubah data yang sama
+             menjadi daftar prioritas yang bisa ditindaklanjuti.</p>
+          <div class="hero-acts">
+            <button type="button" class="btn btn-primary" data-go="skrining">Coba skrining satu orang</button>
+            <button type="button" class="btn" data-go="kohort">Nilai satu kohort</button>
           </div>
-          <div class="panel-body"><form id="form" autocomplete="off"></form></div>
+        </div>
+        <div class="hero-art">
+          <svg id="hero-gauge" viewBox="0 0 420 182" role="img" aria-label="Contoh posisi seorang responden pada skala kepuasan"></svg>
+          <div class="hero-cap">Keluaran model: posisi pada skala kontinu, bukan satu dari empat label</div>
+        </div>
+      </div>
+
+      <h2 class="sec">Temuan yang membentuk seluruh alat ini</h2>
+      <p class="lede">Tiga angka di bawah adalah alasan produk ini berbentuk seperti sekarang.
+         Ketiganya dapat diperiksa ulang dari notebook kompetisi di repositori.</p>
+      <div class="thesis" id="thesis"></div>
+
+      <h2 class="sec" style="margin-top:26px">Mulai dari mana</h2>
+      <p class="lede">Empat alur kerja, masing-masing berdiri sendiri — tidak ada yang perlu diselesaikan lebih dulu.</p>
+      <div class="paths" id="paths"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ SKRINING -->
+  <section id="v-skrining" class="view" aria-labelledby="t-skrining">
+    <header class="bar">
+      <h1 id="t-skrining">Skrining individu</h1>
+      <span class="hint">Tujuh belas pertanyaan yang muat dalam wawancara singkat.</span>
+      <span class="spacer"></span>
+      <div class="bar-actions">
+        <button type="button" id="a-median" class="btn btn-quiet">Median populasi</button>
+        <button type="button" id="a-acak" class="btn">Responden acak</button>
+      </div>
+    </header>
+
+    <div class="pad split">
+      <section class="card">
+        <div class="card-head"><h2>Masukan responden</h2><span class="meta">17 variabel</span></div>
+        <div class="rule"></div>
+        <div class="card-body t"><form id="form" autocomplete="off"></form></div>
+      </section>
+
+      <div class="readout">
+        <section class="card card-2">
+          <div class="gauge">
+            <div class="gauge-head">
+              <div class="value"><span class="v" id="ey">—</span><span class="u">E[y] pada skala 1–4</span></div>
+              <div class="klass">
+                <div><span class="pill" id="kelas">—</span></div>
+                <div class="mg" id="margin">—</div>
+              </div>
+            </div>
+            <p id="say" class="sr" role="status" aria-live="polite"></p>
+            <svg id="gauge" class="instrument" viewBox="0 0 660 238" role="img"
+                 aria-label="Sebaran probabilitas per kelas dan posisi nilai harapan pada skala ambang batas"></svg>
+          </div>
+          <div class="legend" id="legend"></div>
         </section>
 
-        <div class="readout">
-          <section class="panel">
-            <div class="gauge">
-              <div class="gauge-head">
-                <div class="value">
-                  <span class="n" id="ey">—</span>
-                  <span class="unit">E[y] pada skala 1–4</span>
-                </div>
-                <div class="klass">
-                  <div class="name" id="kelas">—</div>
-                  <div class="margin" id="margin">—</div>
-                </div>
-              </div>
-              <p id="say" class="sr" role="status" aria-live="polite"></p>
-              <svg id="gauge" class="instrument" viewBox="0 0 660 214" role="img"
-                   aria-label="Sebaran probabilitas per kelas dan posisi nilai harapan pada skala ambang batas"></svg>
+        <section class="card">
+          <div class="card-head"><h2>Faktor pendorong</h2><span class="meta">perubahan E[y] bila dikembalikan ke median</span></div>
+          <div class="rule"></div>
+          <div class="card-body t"><div id="drivers"></div></div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== KOHORT -->
+  <section id="v-kohort" class="view" aria-labelledby="t-kohort">
+    <header class="bar">
+      <h1 id="t-kohort">Kohort</h1>
+      <span class="hint" id="k-hint">Belum ada kohort dimuat.</span>
+      <span class="spacer"></span>
+      <div class="bar-actions">
+        <label class="btn btn-file">Unggah CSV<input id="file" type="file" accept=".csv,text/csv"></label>
+      </div>
+    </header>
+
+    <div class="pad wide">
+      <div id="k-empty" class="card empty">
+        <span class="glyph" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <h2>Nilai satu kohort sekaligus</h2>
+        <p>Muat kohort contoh, atau unggah CSV Anda sendiri dengan ke-17 kolom variabel.
+           Semua perhitungan terjadi di peramban ini — tidak ada berkas yang dikirim ke mana pun.</p>
+        <div class="acts">
+          <button type="button" id="a-kohort" class="btn btn-accent">Muat kohort contoh</button>
+          <label class="btn btn-file">Unggah CSV<input id="file2" type="file" accept=".csv,text/csv"></label>
+        </div>
+        <div class="progress" id="k-prog" hidden><i></i></div>
+        <p class="status" id="k-status" style="margin-top:16px"></p>
+      </div>
+
+      <div id="k-body" hidden>
+        <section class="card" style="margin-bottom:16px">
+          <div class="summary">
+            <div class="composition">
+              <div class="comp-bar" id="comp" role="img" aria-label="Sebaran kelas prediksi dalam kohort"></div>
+              <div class="comp-key" id="comp-key"></div>
             </div>
-            <div class="legend">
-              <span><i style="background:var(--s1)"></i> 1 · Sangat puas</span>
-              <span><i style="background:var(--s2)"></i> 2 · Puas</span>
-              <span><i style="background:var(--s3)"></i> 3 · Tidak puas</span>
-              <span><i style="background:var(--s4)"></i> 4 · Sangat tidak puas</span>
+            <div class="figs">
+              <div class="fig"><div class="v" id="k-n">—</div><div class="l">responden</div></div>
+              <div class="fig"><div class="v" id="k-mean">—</div><div class="l">rata-rata E[y]</div></div>
+              <div class="fig"><div class="v" id="k-risk">—</div><div class="l">kelas 3 atau 4</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Sebaran E[y] dalam kohort</h2>
+            <span class="meta">arahkan kursor ke batang untuk melihat jumlahnya</span>
+          </div>
+          <div class="rule"></div>
+          <div class="chart-wrap">
+            <svg id="hist" class="chart" viewBox="0 0 960 300" role="img"
+                 aria-label="Histogram nilai harapan kohort dengan tiga ambang batas"></svg>
+            <div class="tip" id="tip" aria-hidden="true"></div>
+          </div>
+          <div class="rule"></div>
+          <div class="summary" style="padding-top:16px">
+            <div class="figs" style="flex:1 1 100%">
+              <div class="fig"><div class="v" id="q-1">—</div><div class="l">kuartil bawah E[y]</div></div>
+              <div class="fig"><div class="v" id="q-2">—</div><div class="l">median E[y]</div></div>
+              <div class="fig"><div class="v" id="q-3">—</div><div class="l">kuartil atas E[y]</div></div>
+              <div class="fig"><div class="v" id="q-w">—</div><div class="l">rentang antar-kuartil</div></div>
+            </div>
+            <p style="flex:1 1 100%;margin:0;font-size:12.5px;color:var(--ink-3);text-wrap:pretty" id="q-txt">—</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== PRIORITAS -->
+  <section id="v-prioritas" class="view" aria-labelledby="t-prioritas">
+    <header class="bar">
+      <h1 id="t-prioritas">Daftar prioritas</h1>
+      <span class="hint">Keluaran yang benar-benar dipakai perencana program: urutan, bukan label.</span>
+      <span class="spacer"></span>
+      <div class="bar-actions">
+        <button type="button" id="a-export" class="btn" disabled>Ekspor CSV</button>
+      </div>
+    </header>
+    <div class="pad wide">
+      <div id="p-empty" class="card empty">
+        <span class="glyph" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <h2>Belum ada kohort untuk diurutkan</h2>
+        <p>Daftar prioritas dibangun dari kohort yang sudah dinilai. Muat satu kohort lebih dulu.</p>
+        <div class="acts"><button type="button" class="btn btn-accent" data-go="kohort">Buka panel kohort</button></div>
+      </div>
+      <section class="card" id="p-body" hidden>
+        <div class="card-head">
+          <h2>Tiga puluh responden dengan E[y] tertinggi</h2>
+          <span class="meta">klik baris untuk membukanya di panel skrining</span>
+        </div>
+        <div class="tbl-wrap"><table class="tbl" id="tbl"><thead></thead><tbody></tbody></table></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============================================================== AMBANG -->
+  <section id="v-ambang" class="view" aria-labelledby="t-ambang">
+    <header class="bar">
+      <h1 id="t-ambang">Ambang penapisan</h1>
+      <span class="hint">Ambang optimal untuk metrik belum tentu ambang yang tepat untuk lapangan.</span>
+      <span class="spacer"></span>
+      <div class="bar-actions">
+        <button type="button" id="a-reset-t3" class="btn btn-quiet">Kembalikan ke optimal</button>
+      </div>
+    </header>
+    <div class="pad wide">
+      <div id="t-empty" class="card empty">
+        <span class="glyph" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <h2>Laboratorium ambang butuh satu kohort</h2>
+        <p>Konsekuensi menggeser ambang hanya bermakna bila diukur pada sekumpulan responden nyata.</p>
+        <div class="acts"><button type="button" class="btn btn-accent" data-go="kohort">Buka panel kohort</button></div>
+      </div>
+
+      <div id="t-body" hidden class="lab-grid">
+        <section class="card">
+          <div class="card-head">
+            <h2>Geser t₃ langsung pada sebarannya</h2>
+            <span class="meta">seret garis merah, atau gunakan panah papan tik</span>
+          </div>
+          <div class="rule"></div>
+          <div class="chart-wrap">
+            <svg id="hist2" class="chart" viewBox="0 0 960 300" role="img"
+                 aria-label="Histogram kohort dengan ambang penapisan yang dapat digeser"></svg>
+            <div class="tip" id="tip2" aria-hidden="true"></div>
+          </div>
+          <div class="rule"></div>
+          <div class="summary" style="padding-top:16px">
+            <div class="composition" style="flex:1 1 100%">
+              <div class="comp-bar" id="comp2" role="img" aria-label="Sebaran kelas pada ambang penapisan saat ini"></div>
+              <div class="comp-key" id="comp2-key"></div>
+            </div>
+            <p style="flex:1 1 100%;margin:0;font-size:12.5px;color:var(--ink-3);text-wrap:pretty" id="t-txt">—</p>
+          </div>
+        </section>
+
+        <div style="display:grid;gap:16px">
+          <section class="card card-2 dial">
+            <div class="dial-row"><span class="t">Ambang penapisan t₃</span><span class="v" id="l-t3">—</span></div>
+            <div class="meter">
+              <div class="meter-bar"><i id="l-meter"></i></div>
+              <div class="meter-lab"><span id="l-flag">—</span><span id="l-delta">—</span></div>
+            </div>
+            <div class="tradeoff">
+              <div class="trade"><div class="v" id="l-extra">—</div><div class="l">tambahan orang tertangkap dibanding optimal QWK</div></div>
+              <div class="trade"><div class="v" id="l-load">—</div><div class="l">beban tindak lanjut per 1.000 responden</div></div>
             </div>
           </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <h2>Faktor pendorong</h2>
-              <span class="meta">perubahan E[y] bila dikembalikan ke median</span>
+          <section class="card">
+            <div class="card-body t">
+              <p style="margin:0;font-size:13px;color:var(--ink-2);text-wrap:pretty">
+                Optimasi QWK menyeimbangkan keempat kelas. Penapisan kesehatan biasanya lebih
+                menoleransi positif palsu daripada melewatkan kasus, sehingga t₃ yang tepat di
+                lapangan hampir selalu <b>lebih rendah</b> daripada t₃ yang optimal untuk metrik.
+                Pilihan Anda tersimpan dan langsung dipakai di seluruh panel lain.
+              </p>
             </div>
-            <div class="panel-body"><div id="drivers"></div></div>
           </section>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- --------------------------------------------------------- kohort -->
-    <section id="v-kohort" class="view" aria-labelledby="t-kohort">
-      <header class="bar">
-        <h1 id="t-kohort">Analisis kohort</h1>
-        <span class="hint" id="k-hint">Belum ada kohort dimuat.</span>
-        <span class="spacer"></span>
-        <div class="bar-actions">
-          <label class="btn btn-file">Unggah CSV<input id="file" type="file" accept=".csv,text/csv"></label>
-          <button type="button" id="a-export" class="btn" disabled>Ekspor hasil</button>
+  <!-- ============================================================== METODE -->
+  <section id="v-metode" class="view" aria-labelledby="t-metode">
+    <header class="bar">
+      <h1 id="t-metode">Cara kerja</h1>
+      <span class="hint">Mengapa aturan keputusan lebih menentukan daripada pilihan modelnya.</span>
+      <span class="spacer"></span>
+    </header>
+    <div class="pad wide">
+      <h2 class="sec">Empat langkah dari kuesioner ke keputusan</h2>
+      <p class="lede">Langkah ketiga adalah yang paling menentukan skor — dan yang paling sering dilewati.</p>
+      <div class="steps" id="steps"></div>
+
+      <h2 class="sec" style="margin-top:30px">Lihat sendiri di mana keduanya berbeda</h2>
+      <p class="lede">Geser untuk menelusuri responden kohort satu per satu, diurutkan dari yang
+         paling puas ke paling tidak puas. Untuk tiap orang, bandingkan kelas yang dipilih
+         <code>argmax</code> dengan kelas yang dipilih aturan ordinal kami.</p>
+
+      <div id="s-empty" class="card empty">
+        <span class="glyph" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <h2>Perbandingan ini memakai responden nyata</h2>
+        <p>Muat kohort contoh untuk menelusurinya satu per satu.</p>
+        <div class="acts"><button type="button" class="btn btn-accent" data-go="kohort">Buka panel kohort</button></div>
+      </div>
+
+      <section class="card card-2 scrub" id="s-body" hidden>
+        <div class="scrub-head">
+          <div><span class="t" style="font-size:13px;font-weight:600">Responden</span>
+               <span class="n" id="s-idx" style="margin-left:8px;font-size:13px;color:var(--ink-3)">—</span></div>
+          <div class="n" id="s-ey" style="font-size:22px;font-weight:620;letter-spacing:-0.025em">—</div>
         </div>
-      </header>
-
-      <div class="pad">
-        <div id="k-empty" class="empty">
-          <span class="glyph" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          <h2>Nilai satu kohort sekaligus</h2>
-          <p>Muat kohort contoh, atau unggah CSV Anda sendiri dengan ke-17 kolom variabel.
-             Semua perhitungan terjadi di peramban ini — tidak ada berkas yang dikirim ke mana pun.</p>
-          <div class="acts">
-            <button type="button" id="a-kohort" class="btn btn-primary">Muat kohort contoh</button>
-            <label class="btn btn-file">Unggah CSV<input id="file2" type="file" accept=".csv,text/csv"></label>
+        <input id="s-range" type="range" min="0" max="0" step="1" value="0" aria-label="Telusuri responden kohort">
+        <div class="verdict">
+          <div class="vd">
+            <div class="h">Bila memakai <code>argmax</code> — kelas dengan probabilitas tertinggi</div>
+            <div class="b"><span class="pip" id="s-am">—</span><b id="s-am-t">—</b></div>
           </div>
-          <div class="progress" id="k-prog" hidden><i></i></div>
-          <p class="status" id="k-status" style="margin-top:14px"></p>
+          <div class="vd">
+            <div class="h">Aturan kami — nilai harapan dipotong tiga ambang</div>
+            <div class="b"><span class="pip" id="s-th">—</span><b id="s-th-t">—</b></div>
+          </div>
+        </div>
+        <div class="agree" id="s-agree">—</div>
+      </section>
+    </div>
+  </section>
+
+  <!-- =============================================================== MODEL -->
+  <section id="v-model" class="view" aria-labelledby="t-model">
+    <header class="bar">
+      <h1 id="t-model">Model</h1>
+      <span class="hint">Spesifikasi, perbandingan terhadap pipeline kompetisi, dan batas pemakaian.</span>
+      <span class="spacer"></span>
+    </header>
+    <div class="pad wide cols">
+      <div>
+        <h3 class="sub">Spesifikasi</h3>
+        <dl class="spec" id="spec"></dl>
+
+        <h3 class="sub">Terhadap pipeline kompetisi</h3>
+        <div class="prose">
+          <p>Pipeline yang dikumpulkan memakai 176 fitur dan enam model dasar dengan berkas model
+             84&nbsp;MB. Berkas sebesar itu tidak masuk akal dijalankan di peramban, dan 176
+             pertanyaan tidak masuk akal ditanyakan dalam wawancara. Model di halaman ini adalah
+             versi yang dapat dipakai di lapangan.</p>
+        </div>
+        <dl class="spec" id="cmp"></dl>
+        <div class="prose" style="margin-top:16px">
+          <p>Yang dipertahankan persis adalah bagian yang paling menentukan skor: nilai harapan
+             E[y]&nbsp;=&nbsp;Σ&nbsp;p<sub>k</sub>·k pada skala ordinal, lalu pemotongan dengan tiga
+             ambang batas yang diestimasi dari out-of-fold data latih. Pada pipeline penuh, langkah
+             itu sendiri menyumbang +0,06269&nbsp;QWK — sembilan kali lebih besar daripada seluruh
+             pekerjaan pemodelan lainnya digabung.</p>
         </div>
 
-        <div id="k-body" hidden>
-          <section class="panel">
-            <div class="summary">
-              <div class="composition">
-                <div class="comp-bar" id="comp" role="img" aria-label="Sebaran kelas prediksi dalam kohort"></div>
-                <div class="comp-key" id="comp-key"></div>
-              </div>
-              <div class="figs">
-                <div class="fig"><div class="n" id="k-n">—</div><div class="l">responden</div></div>
-                <div class="fig"><div class="n" id="k-mean">—</div><div class="l">rata-rata E[y]</div></div>
-                <div class="fig"><div class="n" id="k-risk">—</div><div class="l">kelas 3 atau 4</div></div>
-              </div>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <h2>Sebaran E[y]</h2>
-              <span class="meta">seret garis t₃ untuk mengubah ambang penapisan</span>
-            </div>
-            <div class="chart-wrap">
-              <svg id="hist" class="chart" viewBox="0 0 960 300" role="img"
-                   aria-label="Histogram nilai harapan kohort dengan tiga ambang batas"></svg>
-              <div class="tip" id="tip" aria-hidden="true"></div>
-            </div>
-            <div class="lab">
-              <p>Ambang t₃ yang optimal untuk QWK menyeimbangkan seluruh kelas. Penapisan kesehatan biasanya
-                 lebih menoleransi positif palsu daripada melewatkan kasus — turunkan t₃ dan lihat konsekuensinya.</p>
-              <div class="out">
-                <div class="fig"><div class="n" id="l-t3">—</div><div class="l" id="l-delta">ambang penapisan</div></div>
-                <div class="fig"><div class="n" id="l-flag">—</div><div class="l">ditandai untuk tindak lanjut</div></div>
-                <div class="fig"><div class="n" id="l-diff">—</div><div class="l">selisih vs optimal QWK</div></div>
-              </div>
-              <button type="button" id="a-reset-t3" class="btn btn-quiet">Kembalikan</button>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <h2>Peringkat prioritas</h2>
-              <span class="meta">klik baris untuk membukanya di panel skrining</span>
-            </div>
-            <div class="tbl-wrap">
-              <table class="tbl" id="tbl"><thead></thead><tbody></tbody></table>
-            </div>
-          </section>
+        <h3 class="sub">Catatan tentang kamus data</h3>
+        <div class="note">
+          <p>Kamus data panitia menyederhanakan beberapa kolom. Keempat kolom <code>difficulty_*</code>
+             dijelaskan sebagai <em>1=Ya, 2=Tidak</em>, tetapi datanya berisi empat tingkat berurutan
+             dengan rata-rata target yang naik monoton (1,55 → 1,97 → 2,21 → 2,15 pada kegiatan sosial).
+             <code>education_level</code> dijelaskan sebagai empat tingkat, sedangkan datanya berisi sepuluh.</p>
+          <p>Label pada formulir mengikuti data, bukan kamus — memperlakukan skala empat tingkat
+             sebagai biner akan membuang sinyal yang nyata.</p>
         </div>
       </div>
-    </section>
 
-    <!-- ---------------------------------------------------------- model -->
-    <section id="v-model" class="view" aria-labelledby="t-model">
-      <header class="bar">
-        <h1 id="t-model">Model</h1>
-        <span class="hint">Spesifikasi, perbandingan terhadap pipeline kompetisi, dan batas pemakaian.</span>
-        <span class="spacer"></span>
-        <div class="bar-actions">
-          <a class="btn" href="https://github.com/MikaelAdikara/DataQuest-Warkab" target="_blank" rel="noopener">Repositori</a>
-        </div>
-      </header>
+      <div>
+        <h3 class="sub">Batas pemakaian</h3>
+        <ul class="lim">
+          <li><b>Alat penapisan populasi, bukan diagnosis individual.</b> Sebaran E[y] untuk kelas 1
+            dan 2 bertumpang tindih sangat lebar. Untuk satu orang ketidakpastiannya besar; untuk
+            seribu orang agregatnya dapat diandalkan.</li>
+          <li><b>t₃ adalah parameter paling rapuh.</b> Kelas 4 hanya memiliki 893 baris latih, dan
+            simpangan baku bootstrap t₃ 3,6× lebih besar daripada t₁.</li>
+          <li><b>Separuh variasi kepuasan hidup tidak terekam.</b> Kepribadian, kualitas hubungan
+            sosial, dan rasa bermakna hidup tidak ada dalam survei kesehatan. Ini batas informasi,
+            bukan batas algoritma.</li>
+          <li><b>Satu instrumen survei, satu negara, 2021–2024.</b> Penerapan pada populasi atau
+            instrumen lain memerlukan validasi tersendiri.</li>
+          <li><b>Tanpa data eksternal.</b> Hanya berkas resmi panitia.</li>
+        </ul>
 
-      <div class="pad cols">
-        <div>
-          <h3 class="sub">Spesifikasi</h3>
-          <dl class="spec" id="spec"></dl>
-
-          <h3 class="sub">Terhadap pipeline kompetisi</h3>
-          <div class="prose">
-            <p>Pipeline yang dikumpulkan memakai 176 fitur dan enam model dasar dengan berkas model 84&nbsp;MB.
-               Berkas sebesar itu tidak masuk akal dijalankan di peramban, dan 176 pertanyaan tidak masuk akal
-               ditanyakan dalam wawancara. Model di halaman ini adalah versi yang dapat dipakai di lapangan.</p>
-          </div>
-          <dl class="spec" id="cmp"></dl>
-          <div class="prose" style="margin-top:14px">
-            <p>Yang dipertahankan persis adalah bagian yang paling menentukan skor: nilai harapan
-               E[y]&nbsp;=&nbsp;Σ&nbsp;p<sub>k</sub>·k pada skala ordinal, lalu pemotongan dengan tiga ambang batas
-               yang diestimasi dari out-of-fold data latih. Pada pipeline penuh, langkah itu sendiri menyumbang
-               +0,06269&nbsp;QWK — sembilan kali lebih besar daripada seluruh pekerjaan pemodelan lainnya digabung.</p>
-          </div>
-
-          <h3 class="sub">Catatan tentang kamus data</h3>
-          <div class="callout">
-            <p>Kamus data panitia menyederhanakan beberapa kolom. Keempat kolom <code>difficulty_*</code> dijelaskan
-               sebagai <em>1=Ya, 2=Tidak</em>, tetapi datanya berisi empat tingkat berurutan dengan rata-rata target
-               yang naik monoton (1,55 → 1,97 → 2,21 → 2,15 pada kegiatan sosial). <code>education_level</code>
-               dijelaskan sebagai empat tingkat, sedangkan datanya berisi sepuluh.</p>
-            <p>Label pada formulir mengikuti data, bukan kamus — memperlakukan skala empat tingkat sebagai biner
-               akan membuang sinyal yang nyata.</p>
-          </div>
-        </div>
-
-        <div>
-          <h3 class="sub">Batas pemakaian</h3>
-          <ul class="lim">
-            <li><b>Alat penapisan populasi, bukan diagnosis individual.</b> Sebaran E[y] untuk kelas 1 dan 2
-              bertumpang tindih sangat lebar. Untuk satu orang ketidakpastiannya besar; untuk seribu orang
-              agregatnya dapat diandalkan.</li>
-            <li><b>t₃ adalah parameter paling rapuh.</b> Kelas 4 hanya memiliki 893 baris latih, dan simpangan
-              baku bootstrap t₃ 3,6× lebih besar daripada t₁.</li>
-            <li><b>Separuh variasi kepuasan hidup tidak terekam.</b> Kepribadian, kualitas hubungan sosial, dan
-              rasa bermakna hidup tidak ada dalam survei kesehatan. Ini batas informasi, bukan batas algoritma.</li>
-            <li><b>Satu instrumen survei, satu negara, 2021–2024.</b> Penerapan pada populasi atau instrumen lain
-              memerlukan validasi tersendiri.</li>
-            <li><b>Tanpa data eksternal.</b> Hanya berkas resmi panitia.</li>
-          </ul>
-
-          <h3 class="sub">Reproduksi</h3>
-          <ul class="lim">
-            <li><code>model/train_surrogate.py</code> memproduksi ulang <code>data/model_lifescope.json</code>
-              secara identik dengan <code>random_state = 42</code>.</li>
-            <li>Notebook kompetisi lengkap dan <code>requirements.txt</code> tersedia di folder
-              <code>docs/</code> pada repositori.</li>
-            <li>Halaman ini tidak memuat skrip pihak ketiga, tidak menyimpan data, dan tidak melakukan
-              permintaan jaringan apa pun setelah dimuat.</li>
-          </ul>
-        </div>
+        <h3 class="sub">Privasi dan reproduksi</h3>
+        <ul class="lim">
+          <li><b>Tidak ada data yang meninggalkan peramban.</b> Berkas CSV yang Anda unggah dibaca
+            secara lokal; halaman ini tidak melakukan permintaan jaringan apa pun setelah dimuat dan
+            tidak memuat skrip pihak ketiga.</li>
+          <li><code>model/train_surrogate.py</code> memproduksi ulang <code>data/model_lifescope.json</code>
+            secara identik dengan <code>random_state = 42</code>.</li>
+          <li>Notebook kompetisi lengkap dan <code>requirements.txt</code> tersedia di folder
+            <code>docs/</code> pada repositori.</li>
+        </ul>
       </div>
-    </section>
+    </div>
+  </section>
 
   </main>
 </div>
