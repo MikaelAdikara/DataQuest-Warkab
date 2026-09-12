@@ -87,6 +87,20 @@ bagian yang paling menentukan skor, yaitu aturan keputusannya.
 - Sekitar separuh variasi kepuasan hidup tidak terekam dalam survei kesehatan mana pun — ini batas
   informasi, bukan batas algoritma.
 
+## Menyebarkan (deploy)
+
+Aplikasi ini statis sepenuhnya — tidak ada langkah build, tidak ada server.
+
+**GitHub Pages** menyajikannya langsung dari cabang `main` tanpa konfigurasi tambahan.
+
+**Vercel** memerlukan `vercel.json` dan `.vercelignore` yang sudah disertakan di repositori ini.
+Tanpa keduanya, Vercel memindai repo, menemukan `docs/requirements.txt` dan
+`model/train_surrogate.py`, menyimpulkan ini proyek Python, lalu gagal dengan
+*"No python entrypoint found"*. `.vercelignore` mengeluarkan kedua berkas itu dari unggahan
+(keduanya tetap ada di GitHub), dan `vercel.json` menyatakan proyek ini statis sekaligus
+memasang header cache dan keamanan. Bila Anda lebih suka mengatur lewat dasbor: setel
+*Framework Preset* ke **Other**, kosongkan *Build Command*, dan isi *Output Directory* dengan `.`.
+
 ## Menjalankan secara lokal
 
 Aplikasi memuat berkas JSON lewat `fetch`, sehingga perlu server statis — membuka `index.html`

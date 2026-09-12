@@ -1,0 +1,9 @@
+# Vercel hanya perlu aplikasinya: index.html, assets/, data/.
+# Berkas di bawah ini adalah bahan sumber dan rujukan — tetap ada di GitHub,
+# tetapi tidak ikut diunggah ke Vercel. Menyertakan requirements.txt atau
+# berkas .py membuat Vercel salah mendeteksi proyek ini sebagai proyek Python
+# dan mencari entrypoint yang memang tidak ada.
+model/
+docs/
+README.md
+.nojekyll
