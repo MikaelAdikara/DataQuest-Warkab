@@ -85,7 +85,7 @@ const FREQ = [[1, 'Setiap hari'], [2, 'Setiap minggu'], [3, 'Setiap bulan'],
 const SULIT = [[1, 'Tidak ada kesulitan'], [2, 'Sedikit kesulitan'],
                [3, 'Banyak kesulitan'], [4, 'Sama sekali tidak bisa']];
 const DIDIK = Array.from({ length: 10 }, (_, i) =>
-  [i + 1, 'Tingkat ' + (i + 1) + (i === 0 ? ' — terendah' : i === 9 ? ' — tertinggi' : '')]);
+  [i + 1, 'Tingkat ' + (i + 1) + (i === 0 ? ' (terendah)' : i === 9 ? ' (tertinggi)' : '')]);
 
 const FIELDS = [
   { g: 'Kesehatan dan kondisi mental', k: 'general_health_status', l: 'Penilaian kesehatan diri',
@@ -259,40 +259,37 @@ function buildHeroGauge() {
   if (!root) return;
   root.innerHTML = '';
   const g = defs(root, 'H');
-  const L = 22, R = 398, RY = 112, RH = 26, D0 = 44, D1 = 104;
-  const px = v => L + (Math.min(4, Math.max(1, v)) - 1) / 3 * (R - L);
-  const t = M.thresholds;
-  if (CTX && CTX.hist && CTX.hist.length) {
-    const mx = Math.max(...CTX.hist);
-    const pts = CTX.hist.map((c, i) => {
-      const v = (CTX.edges[i] + CTX.edges[i + 1]) / 2;
-      return px(v).toFixed(1) + ',' + (D1 - c / mx * (D1 - D0)).toFixed(1);
-    });
-    svg('polygon', { points: px(CTX.edges[0]) + ',' + D1 + ' ' + pts.join(' ') +
-      ' ' + px(CTX.edges[CTX.edges.length - 1]) + ',' + D1, fill: 'var(--surface-3)' }, root);
-    svg('text', { x: R, y: D1 - 6, 'text-anchor': 'end', 'font-size': 9.5, fill: 'var(--ink-3)' }, root)
-      .textContent = 'sebaran populasi';
+
+  /* Grid 200 kotak pada proporsi kelas sebenarnya di data latih:
+     44,94 / 50,40 / 3,72 / 0,93 persen. Sembilan kotak hangat di ujung adalah
+     4,7% yang jadi alasan alat ini dibuat. */
+  const N = 200, COLS = 20, CELL = 17, GAP = 3.4, X0 = 24, Y0 = 10;
+  const share = [0.4494, 0.5040, 0.0372, 0.0093];
+  const cnt = share.map(v => Math.round(v * N));
+  while (cnt.reduce((a, b) => a + b, 0) < N) cnt[1]++;
+  while (cnt.reduce((a, b) => a + b, 0) > N) cnt[1]--;
+
+  const cls = [];
+  cnt.forEach((c, i) => { for (let k = 0; k < c; k++) cls.push(i); });
+
+  let warmX0 = null, warmY0 = null;
+  cls.forEach((c, i) => {
+    const col = i % COLS, row = Math.floor(i / COLS);
+    const x = X0 + col * (CELL + GAP), y = Y0 + row * (CELL + GAP);
+    if (c >= 2 && warmX0 === null) { warmX0 = x; warmY0 = y; }
+    svg('rect', { x, y, width: CELL, height: CELL, rx: 3.5, fill: g(c) }, root);
+  });
+
+  /* penanda tipis di sekeliling kelompok kotak hangat */
+  if (warmX0 !== null) {
+    const lastRow = Math.floor((N - 1) / COLS);
+    svg('rect', {
+      x: warmX0 - 4, y: warmY0 - 4,
+      width: X0 + COLS * (CELL + GAP) - GAP - warmX0 + 8,
+      height: Y0 + lastRow * (CELL + GAP) + CELL - warmY0 + 8,
+      rx: 7, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.4
+    }, root);
   }
-  [[1, t[0]], [t[0], t[1]], [t[1], t[2]], [t[2], 4]].forEach((z, i) => {
-    svg('rect', { x: px(z[0]), y: RY, width: px(z[1]) - px(z[0]), height: RH, fill: g(i),
-      rx: i === 0 || i === 3 ? 7 : 0 }, root);
-  });
-  /* responden contoh: median populasi, dihitung nyata */
-  const p = proba(MEDIAN.slice()), E = expected(p), k = klas(E, t);
-  const X = px(E);
-  svg('polygon', { points: (X - 7) + ',24 ' + (X + 7) + ',24 ' + X + ',36', fill: 'url(#Hgi)' }, root);
-  svg('line', { x1: X, y1: 34, x2: X, y2: RY + RH + 5, stroke: 'var(--ink)', 'stroke-width': 1.8 }, root);
-  svg('text', { x: X, y: 16, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 640,
-    'font-family': 'var(--mono)', fill: 'var(--ink)' }, root).textContent = 'E[y] ' + fmt(E);
-  t.forEach((v, i) => {
-    svg('line', { x1: px(v), y1: RY - 5, x2: px(v), y2: RY + RH + 5, stroke: 'var(--ink)', 'stroke-width': 1 }, root);
-    svg('text', { x: px(v), y: RY + RH + 20, 'text-anchor': 'middle', 'font-size': 10,
-      'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = 't' + (i + 1);
-  });
-  svg('text', { x: L, y: RY + RH + 20, 'font-size': 10, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '1,0';
-  svg('text', { x: R, y: RY + RH + 20, 'text-anchor': 'end', 'font-size': 10, 'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = '4,0';
-  svg('text', { x: (L + R) / 2, y: RY + RH + 38, 'text-anchor': 'middle', 'font-size': 10.5, fill: 'var(--ink-3)' }, root)
-    .textContent = 'responden median populasi → kelas ' + k + ', ' + NAMA[k - 1];
 }
 
 /* ---------------------------------------------------------------- render -- */
@@ -308,7 +305,7 @@ function render() {
 
   const d = Math.min(...TH().map(t => Math.abs(E - t)));
   const mg = $('#margin');
-  mg.textContent = d > 0.12 ? fmt(d) + ' dari ambang terdekat' : 'hanya ' + fmt(d) + ' dari ambang — tidak tegas';
+  mg.textContent = d > 0.12 ? fmt(d) + ' dari ambang terdekat' : 'hanya ' + fmt(d) + ' dari ambang, tidak tegas';
   mg.style.color = d > 0.12 ? '' : 'var(--s4)';
 
   $('#gauge').setAttribute('aria-label',
@@ -338,8 +335,8 @@ function renderDrivers(x, E) {
   host.innerHTML = '';
   $$('.row.hi').forEach(r => r.classList.remove('hi'));
   if (!rows.length) {
-    host.innerHTML = '<p class="status" style="margin:2px 0">Seluruh variabel berada pada median populasi. ' +
-      'Ubah salah satu jawaban, atau muat responden acak, untuk melihat apa yang menggerakkan E[y].</p>';
+    host.innerHTML = '<p class="status" style="margin:2px 0">Semua variabel ada di median populasi. ' +
+      'Ubah satu jawaban untuk melihat apa yang menggerakkan E[y].</p>';
     return;
   }
   const mx = Math.abs(rows[0].d);
@@ -426,8 +423,7 @@ function renderCohort() {
     $('#q-1').textContent = fmt(q1); $('#q-2').textContent = fmt(q2);
     $('#q-3').textContent = fmt(q3); $('#q-w').textContent = fmt(q3 - q1);
     $('#q-txt').textContent = 'Separuh kohort berada di antara ' + fmt(q1) + ' dan ' + fmt(q3) +
-      '. Massa terbesar menumpuk di sekitar t₁, tepat di batas antara “Sangat puas” dan “Puas” — ' +
-      'di situlah klasifikasi paling ambigu, dan di situlah sebagian besar penalti metrik terjadi.';
+      '. Puncaknya menumpuk di t₁, batas antara Sangat puas dan Puas, tempat sebagian besar penalti metrik terjadi.';
   }
   buildHist('hist', 'tip', false);
   buildHist('hist2', 'tip2', true);
@@ -472,7 +468,7 @@ function buildHist(rootId, tipId, drag) {
       'font-family': 'var(--mono)', fill: 'var(--ink-3)' }, root).textContent = fmt(v, 2);
   }
   svg('text', { x: (HL + HW - HR) / 2, y: HH - 8, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--ink-3)' }, root)
-    .textContent = 'E[y] — nilai harapan pada skala kepuasan';
+    .textContent = 'E[y], nilai harapan pada skala kepuasan';
 
   M.thresholds.slice(0, 2).forEach((v, i) => {
     svg('line', { x1: hx(v), y1: HT, x2: hx(v), y2: y0, stroke: 'var(--ink-3)', 'stroke-width': 1, 'stroke-dasharray': '3 4' }, root);
@@ -557,7 +553,7 @@ function renderKohortCounts() {
     tx.textContent = 'Pada ambang ' + fmt(T3, 2) + ', kohort ini terbagi menjadi ' +
       cnt.map((c, i) => idn(c) + ' di kelas ' + (i + 1)).join(', ') + '. ' +
       (Math.abs(d) < 0.005 ? 'Ini ambang yang optimal untuk QWK.'
-        : 'Menggeser t₃ hanya memindahkan orang antara kelas 3 dan kelas 4 — jumlah yang perlu ditindaklanjuti tetap, yang berubah adalah tingkat urgensinya.');
+        : 'Menggeser t₃ memindahkan orang antara kelas 3 dan 4. Jumlah yang perlu ditindaklanjuti tetap, yang berubah tingkat urgensinya.');
   }
 }
 function attachHist(rootId, drag) {
@@ -688,12 +684,12 @@ function paintScrub() {
   const box = $('#s-agree');
   box.classList.toggle('diff', ka !== kt);
   box.innerHTML = (ka !== kt
-    ? 'Keduanya <b>berbeda</b> untuk responden ini: <code>argmax</code> memilih kelas ' + ka +
-      ', aturan ordinal memilih kelas ' + kt + '. '
-    : 'Keduanya sepakat untuk responden ini. ') +
-    'Pada seluruh kohort, keduanya berbeda pada <b>' + idn(beda) + ' dari ' + idn(COHORT.length) +
-    ' responden</b> (' + pct(beda / COHORT.length) + '). Perbedaan itulah yang menyumbang ' +
-    '+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5) + ' QWK pada model ini.';
+    ? '<b>Berbeda</b> untuk responden ini: <code>argmax</code> pilih kelas ' + ka +
+      ', aturan ordinal pilih kelas ' + kt + '. '
+    : 'Keduanya sepakat di sini. ') +
+    'Se-kohort, keduanya berbeda pada <b>' + idn(beda) + ' dari ' + idn(COHORT.length) +
+    ' responden</b> (' + pct(beda / COHORT.length) + '), dan selisih itu menyumbang +' +
+    fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5) + ' QWK.';
 }
 
 /* ------------------------------------------------------------------- CSV -- */
@@ -792,28 +788,28 @@ function buildNav() {
     '<span><i style="background:' + CSSG[i] + '"></i> ' + (i + 1) + ' · ' + t + '</span>').join('');
 
   $('#thesis').innerHTML = [
-    ['+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5), 'Aturan keputusan, bukan model',
-      'Memakai nilai harapan pada skala ordinal alih-alih memilih kelas dengan probabilitas tertinggi. Model, fitur, dan seed persis sama.'],
+    ['+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5), 'Dari aturan keputusan',
+      'Bukan dari model. Nilai harapan ordinal menggantikan kelas berprobabilitas tertinggi, dengan model dan seed yang sama persis.'],
     ['50,4%', 'Akurasi yang bernilai nol',
-      'Akurasi yang didapat dengan menebak kelas mayoritas untuk semua orang. QWK-nya persis 0,00000 — metrik ini tidak memberi imbalan pada tebakan aman.'],
-    ['4.452', 'Orang yang perlu ditemukan',
-      'Responden di dua kelas terbawah, dari 95.609 baris data latih. Hanya 4,7% — dan justru di sanalah hampir seluruh penalti berada.']
+      'Tebak kelas mayoritas untuk semua orang: akurasi 50,4%, QWK 0,00000. Metrik ini tidak mengganjar tebakan aman.'],
+    ['4.452', 'Orang yang dicari',
+      'Responden di dua kelas terbawah dari 95.609 baris latih. Cuma 4,7%, tapi di sanalah hampir seluruh penalti.']
   ].map(r => '<div class="th"><div class="k">' + r[0] + '</div><div class="t">' + r[1] + '</div><div class="d">' + r[2] + '</div></div>').join('');
 
   $('#paths').innerHTML = [
-    ['skrining', 'Skrining satu orang', 'Isi 17 pertanyaan, lihat posisinya pada skala beserta faktor yang mendorongnya.', 0],
-    ['kohort', 'Nilai satu kohort', 'Muat contoh atau unggah CSV Anda sendiri. Semua perhitungan terjadi di peramban.', 1],
-    ['prioritas', 'Susun daftar prioritas', 'Urutkan berdasarkan E[y], buka satu baris untuk memeriksanya, lalu ekspor CSV.', 2],
-    ['ambang', 'Kalibrasi ambang', 'Geser t₃ dan lihat berapa orang tambahan yang tertangkap untuk tiap penurunan.', 3]
+    ['skrining', 'Skrining satu orang', 'Isi 17 pertanyaan, lihat posisinya pada skala.', 0],
+    ['kohort', 'Nilai satu kohort', 'Muat contoh, atau unggah CSV Anda sendiri.', 1],
+    ['prioritas', 'Susun daftar prioritas', 'Urutkan berdasarkan E[y], lalu ekspor CSV.', 2],
+    ['ambang', 'Kalibrasi ambang', 'Geser t₃, lihat berapa orang tambahan tertangkap.', 3]
   ].map(r => '<button type="button" class="path" data-go="' + r[0] + '">' +
       '<span class="ic" style="background:' + CSSG[r[3]] + '">' + icon(r[0]) + '</span>' +
       '<b>' + r[1] + '</b><span>' + r[2] + '</span><span class="go">Buka →</span></button>').join('');
 
   $('#steps').innerHTML = [
-    ['Kuesioner', '17 variabel yang dapat ditanyakan dalam wawancara beberapa menit. Non-respons diteruskan apa adanya — tidak diimputasi.'],
-    ['Ansambel pohon', idn(M.meta.n_pohon) + ' pohon keputusan menghasilkan empat probabilitas: p₁ sampai p₄, satu untuk tiap tingkat kepuasan.'],
-    ['Nilai harapan', 'E[y] = Σ pₖ·k menggabungkan keempatnya menjadi satu titik pada skala kontinu. Inilah langkah yang paling menentukan skor — argmax membuang informasi jaraknya.'],
-    ['Tiga ambang batas', 'E[y] dipotong pada t₁, t₂, dan t₃ yang diestimasi dari out-of-fold data latih. Di lapangan, t₃ boleh digeser sesuai toleransi risiko.']
+    ['Kuesioner', '17 variabel. Non-respons diteruskan apa adanya, tanpa imputasi.'],
+    ['Ansambel pohon', idn(M.meta.n_pohon) + ' pohon menghasilkan empat probabilitas, p₁ sampai p₄.'],
+    ['Nilai harapan', 'E[y] = Σ pₖ·k menggabungkannya jadi satu titik. Langkah inilah yang paling menentukan skor; argmax membuang informasi jaraknya.'],
+    ['Tiga ambang batas', 'E[y] dipotong di t₁, t₂, t₃ dari out-of-fold data latih. Di lapangan t₃ boleh digeser.']
   ].map((r, i) => '<div class="step"><span class="i" style="background:' + CSSG[i] + ';color:' +
       ((i === 1 || i === 2) ? 'var(--ink)' : '#fff') + '">' + (i + 1) + '</span>' +
       '<span><b>' + r[0] + '</b><span>' + r[1] + '</span></span></div>').join('');
@@ -830,8 +826,8 @@ function buildNav() {
   ].map(r => '<div><dt>' + r[0] + '</dt><dd' + (r[2] ? ' class="n"' : '') + '>' + r[1] + '</dd></div>').join('');
 
   $('#cmp').innerHTML = [
-    ['QWK — model ringkas ini', fmt(M.meta.qwk_oof_ambang, 5)],
-    ['QWK — pipeline kompetisi', fmt(M.meta.qwk_pipeline_penuh, 5)],
+    ['QWK model ringkas ini', fmt(M.meta.qwk_oof_ambang, 5)],
+    ['QWK pipeline kompetisi', fmt(M.meta.qwk_pipeline_penuh, 5)],
     ['Model ringkas dengan argmax', fmt(M.meta.qwk_oof_argmax, 5)],
     ['Sumbangan aturan keputusan', '+' + fmt(M.meta.qwk_oof_ambang - M.meta.qwk_oof_argmax, 5)]
   ].map(r => '<div><dt>' + r[0] + '</dt><dd class="n">' + r[1] + '</dd></div>').join('');
