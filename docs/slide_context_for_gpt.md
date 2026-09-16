@@ -60,7 +60,7 @@ Navigasi bawah tiap slide: `I · Masalah & data` · `II · EDA` · `III · Pipel
 | # | Babak | Judul slide | Fungsi dalam cerita | Badge keunggulan |
 |---|---|---|---|---|
 | 1 | Pembuka | Membaca Skala, Bukan Menebak Kelas | Identitas proyek dan tujuan satu kalimat | – |
-| 2 | Pembuka | Orang yang tidak puas dengan hidupnya jarang terlihat, sampai terlambat | **Hook empati**: bahaya nyata, statistik WHO dan Riskesdas | – |
+| 2 | Pembuka | Orang yang tidak puas dengan hidupnya jarang terlihat, sampai terlambat | **Hook empati**: bahaya nyata, statistik WHO (322 juta; >720.000) dan Riskesdas (6,1%; 9,0%) | – |
 | 3 | I | Datanya sudah ada. Yang belum ada adalah siapa orangnya | Celah dunia nyata, tujuan, tiga penerima manfaat | – |
 | 4 | I | "Semua baik-baik saja": akurasi 50,4%, tak menemukan siapa pun | Jembatan ke teknis: kenapa akurasi menyesatkan, kenapa QWK, spesifikasi data | – |
 | 5 | I | Enam hal yang membedakan pipeline kami dari pendekatan standar | **Janji keunggulan kompetitif**, dibuktikan di slide berikutnya | – |
@@ -96,9 +96,9 @@ Navigasi bawah tiap slide: `I · Masalah & data` · `II · EDA` · `III · Pipel
 ### 5.1 Konteks dunia nyata (hanya konteks, bukan data latih)
 | Fakta | Sumber |
 |---|---|
-| ± 280 juta orang di dunia hidup dengan depresi, sekitar 5% orang dewasa | WHO (2023), fact sheet Depressive disorder |
-| ± 703.000 kematian akibat bunuh diri per tahun | WHO (2021), Suicide worldwide in 2019 |
-| Prevalensi depresi penduduk Indonesia ≥15 tahun 6,1%; hanya 9% penderita yang berobat | Kemenkes RI, Riskesdas 2018 |
+| ± 322 juta orang di dunia hidup dengan depresi; 5,2% orang dewasa (4,1% laki-laki, 6,2% perempuan), estimasi 2023 | WHO, fact sheet Depressive disorder (diperbarui 11 Sep 2026) |
+| Lebih dari 720.000 kematian akibat bunuh diri per tahun, estimasi 2021 | WHO, fact sheet Suicide (diperbarui 28 Agu 2026) |
+| Prevalensi depresi penduduk ≥15 tahun 6,1% (95% CI 6,0–6,2; diukur dengan MINI); 9,0% penderita depresi minum obat/menjalani pengobatan medis (95% CI 8,6–9,5) | Kemenkes RI, Laporan Nasional Riskesdas 2018, Tabel 8.2.1 (hlm. 224) dan 8.4.4 (hlm. 232) |
 | Kesejahteraan subjektif berkontribusi pada kesehatan dan umur panjang | Diener & Chan (2011) |
 | Ketidakpuasan hidup terkait risiko bunuh diri dalam tindak lanjut 20 tahun | Koivumaa-Honkanen dkk. (2001) |
 | Evaluasi hidup ukuran inti kesejahteraan nasional | OECD (2013) |

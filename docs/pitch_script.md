@@ -15,7 +15,7 @@
 *(Jeda dua detik setelah membaca judul.)*
 > Orang yang tidak puas dengan hidupnya jarang terlihat, sampai terlambat.
 >
-> Menurut WHO, sekitar 280 juta orang hidup dengan depresi, dan sekitar 703 ribu orang meninggal karena bunuh diri setiap tahun. Di Indonesia, Riskesdas 2018 mencatat prevalensi depresi 6,1 persen, tapi hanya 9 persen dari mereka yang berobat.
+> Menurut WHO, sekitar 322 juta orang di dunia hidup dengan depresi, dan lebih dari 720 ribu orang meninggal karena bunuh diri setiap tahun. Di Indonesia, Riskesdas 2018 mencatat 6,1 persen penduduk usia 15 tahun ke atas mengalami depresi, tapi hanya 9 persen dari mereka yang minum obat atau menjalani pengobatan medis.
 >
 > Penelitian menunjukkan kepuasan hidup yang rendah memprediksi umur lebih pendek dan risiko bunuh diri hingga 20 tahun kemudian. Jadi masalahnya bukan tidak bisa dideteksi. Masalahnya, tidak ada yang membacanya lebih awal.
 >
