@@ -36,7 +36,7 @@ Juri akan menilai: kedalaman teknis, justifikasi metodologi, penerapan di dunia 
 
 ## 3. Ringkasan proyek
 
-**Nama:** *Membaca Skala, Bukan Menebak Kelas* · produk: **LifeScope**
+**Nama proyek:** **LifeScope** · slogan: *Menemukan yang diam-diam tidak baik-baik saja.* · Tim Warkab
 
 **Masalah nyata:** Orang dengan kepuasan hidup rendah jarang terlihat sampai terlambat. Survei kesehatan rutin sudah menanyakan kepuasan hidup, tetapi hasilnya hanya menjadi satu persentase agregat (4,7% tidak puas) tanpa nama yang bisa ditindaklanjuti.
 
@@ -59,7 +59,7 @@ Navigasi bawah tiap slide: `I · Masalah & data` · `II · EDA` · `III · Pipel
 
 | # | Babak | Judul slide | Fungsi dalam cerita | Badge keunggulan |
 |---|---|---|---|---|
-| 1 | Pembuka | Membaca Skala, Bukan Menebak Kelas | Identitas proyek dan tujuan satu kalimat | – |
+| 1 | Pembuka | LifeScope · Menemukan yang diam-diam tidak baik-baik saja | Identitas proyek, slogan, satu kalimat manfaat; angka sampul: 95.609 jawaban survei, 4,7% yang perlu ditemukan, 17 pertanyaan versi ringkas, 1 daftar prioritas, 0 server. Hindari istilah kompetisi di sampul | – |
 | 2 | Pembuka | Orang yang tidak puas dengan hidupnya jarang terlihat, sampai terlambat | **Hook empati**: bahaya nyata, statistik WHO (322 juta; >720.000) dan Riskesdas (6,1%; 9,0%) | – |
 | 3 | I | Datanya sudah ada. Yang belum ada adalah siapa orangnya | Celah dunia nyata, tujuan, tiga penerima manfaat | – |
 | 4 | I | "Semua baik-baik saja": akurasi 50,4%, tak menemukan siapa pun | Jembatan ke teknis: kenapa akurasi menyesatkan, kenapa QWK, spesifikasi data | – |

@@ -9,7 +9,7 @@
 ## BABAK I · Masalah dan data (± 4 menit)
 
 ### Slide 1 · Sampul `[0:15]`
-> Selamat pagi, Bapak dan Ibu juri. Kami Tim Warkab. Proyek kami namanya *Membaca Skala, Bukan Menebak Kelas*: cara menemukan lebih awal siapa yang paling perlu ditolong, dari survei kesehatan yang sudah ada.
+> Selamat pagi, Bapak dan Ibu juri. Kami Tim Warkab, dan ini **LifeScope**: menemukan yang diam-diam tidak baik-baik saja. LifeScope membaca kepuasan hidup dari survei kesehatan yang sudah ada, lalu mengubahnya menjadi daftar siapa yang paling perlu ditolong lebih dulu.
 
 ### Slide 2 · Hook `[0:45]`
 *(Jeda dua detik setelah membaca judul.)*
